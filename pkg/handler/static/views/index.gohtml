@@ -1,0 +1,146 @@
+<main>
+    <h1 class="text-3xl">Lithium - create serverless backend with WASM modules</h1>
+    <h2 class="text-xl">Batteries included!</h2>
+
+    <br>
+
+    <div class="flex flex-row gap-4 items-center">
+        <div x-data="loginForm()">
+            <button @click="open = true"
+                    class="px-4 py-2 bg-green-400 rounded shadow hover:bg-green-600 hover:cursor-pointer transition">
+                Login
+            </button>
+
+            <div x-show="open" x-transition.opacity @click.self="open = false" style="display: none;"
+                 class="fixed inset-0 bg-black/50 flex items-center justify-center z-40">
+                <div x-show="open" x-transition @keydown.escape.window="open = false"
+                     class="bg-white rounded-xl shadow-xl max-w-md w-full p-6 relative z-50">
+                    <div class="flex justify-between items-center border-b pb-3">
+                        <h2 class="text-xl font-semibold">Login</h2>
+                        <button @click="open = false" class="text-gray-500 hover:text-gray-700">
+                            ✕
+                        </button>
+                    </div>
+
+                    <div class="mt-4 flex flex-col gap-2">
+                        <div class="flex flex-col gap-2">
+                            <label for="login-email">Email</label>
+                            <input x-model="email" type="email" id="login-email" placeholder="Email"
+                                   class="border rounded p-2">
+                        </div>
+
+                        <div class="flex flex-col gap-2">
+                            <label for="login-password">Password</label>
+                            <input x-model="password" type="password" id="login-password" placeholder="Password"
+                                   class="border rounded p-2">
+                        </div>
+
+                        <p x-show="error" x-text="error" class="text-red-500 text-sm mt-2"></p>
+                    </div>
+
+                    <div class="mt-6 flex justify-around gap-2">
+                        <button @click="open = false"
+                                class="px-4 py-2 bg-gray-200 rounded hover:bg-gray-300 hover:cursor-pointer transition">
+                            Cancel
+                        </button>
+                        <button @click="await login()"
+                                class="px-4 py-2 bg-green-400 rounded hover:bg-green-600 hover:cursor-pointer transition">
+                            Login
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div>or</div>
+
+        <div x-data="{ open: false }">
+            <button @click="open = true"
+                    class="px-4 py-2 bg-blue-400 rounded shadow hover:bg-blue-600 hover:cursor-pointer transition">
+                Register
+            </button>
+
+            <div x-show="open" x-transition.opacity @click.self="open = false" style="display: none;"
+                 class="fixed inset-0 bg-black/50 flex items-center justify-center z-40">
+                <div x-show="open" x-transition @keydown.escape.window="open = false"
+                     class="bg-white rounded-xl shadow-xl max-w-md w-full p-6 relative z-50">
+                    <div class="flex justify-between items-center border-b pb-3">
+                        <h2 class="text-xl font-semibold">Register</h2>
+                        <button @click="open = false" class="text-gray-500 hover:text-gray-700">
+                            ✕
+                        </button>
+                    </div>
+
+                    <div class="mt-4 flex flex-col gap-2">
+                        <div class="flex flex-col gap-2">
+                            <label for="register-email">Email</label>
+                            <input type="email" id="register-email" placeholder="Email" class="border rounded p-2">
+                        </div>
+
+                        <div class="flex flex-col gap-2">
+                            <label for="register-password">Password</label>
+                            <input type="password" id="register-password" placeholder="Password"
+                                   class="border rounded p-2">
+                        </div>
+
+                        <div class="flex flex-col gap-2">
+                            <label for="register-confirm-password">Confirm password</label>
+                            <input type="password" id="register-confirm-password" placeholder="Password"
+                                   class="border rounded p-2">
+                        </div>
+                    </div>
+
+                    <div class="mt-6 flex justify-around gap-2">
+                        <button @click="open = false"
+                                class="px-4 py-2 bg-gray-200 rounded hover:bg-gray-300 hover:cursor-pointer transition">
+                            Cancel
+                        </button>
+                        <button @click="open = false"
+                                class="px-4 py-2 bg-blue-400 rounded hover:bg-blue-600 hover:cursor-pointer transition">
+                            Register
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</main>
+
+<script>
+    function loginForm() {
+        return {
+            open: false,
+            email: "",
+            password: "",
+            error: "",
+
+            async login() {
+                console.log("LOGIN")
+                this.error = ""
+                try {
+                    let res = await fetch("/api/login", {
+                        method: "POST",
+                        headers: {"Content-Type": "application/json"},
+                        body: JSON.stringify({
+                            email: this.email,
+                            password: this.password,
+                        }),
+                    })
+
+                    if (!res.ok) {
+                        let msg = await res.text()
+                        throw new Error(msg || "Login failed")
+                    }
+
+                    let data = await res.json()
+                    console.log("Logged in:", data)
+
+                    this.open = false
+                    window.location.href = "/dashboard"
+                } catch (err) {
+                    this.error = err.message
+                }
+            },
+        }
+    }
+</script>
