@@ -17,17 +17,19 @@ import (
 )
 
 func init() { //nolint:gochecknoinits
-	di.Base().MustProvide(func(ctx context.Context, v *viper.Viper) (*bun.DB, error) {
-		db := bun.NewDB(sql.OpenDB(pgdriver.NewConnector(
-			pgdriver.WithDSN(v.GetString("postgres-connection-string")),
-		)), pgdialect.New())
+	di.Base().
+		MustProvide(func(ctx context.Context, v *viper.Viper) (*bun.DB, error) {
+			db := bun.NewDB(sql.OpenDB(pgdriver.NewConnector(
+				pgdriver.WithDSN(v.GetString("postgres-connection-string")),
+			)), pgdialect.New())
 
-		if err := db.PingContext(ctx); err != nil {
-			return nil, fmt.Errorf("ping db: %w", err)
-		}
+			if err := db.PingContext(ctx); err != nil {
+				return nil, fmt.Errorf("ping db: %w", err)
+			}
 
-		return db, nil
-	})
+			return db, nil
+		}).
+		MustProvide(func(db *bun.DB) Transaction { return &transaction{db} })
 }
 
 func RunMigrations(ctx context.Context, db *bun.DB) error {

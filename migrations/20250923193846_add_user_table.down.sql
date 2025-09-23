@@ -1,1 +1,1 @@
-SELECT 1;
+DROP TABLE "user";
