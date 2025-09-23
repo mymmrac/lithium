@@ -11,10 +11,11 @@ type auth struct{}
 
 func RegisterHandlers(router fiber.Router) error {
 	a := &auth{}
+	api := router.Group("/api")
 
-	router.Post("/login", a.loginHandler)
-	router.Post("/register", a.registerHandler)
-	router.Post("/logout", a.logoutHandler)
+	api.Post("/login", a.loginHandler)
+	api.Post("/register", a.registerHandler)
+	api.Post("/logout", a.logoutHandler)
 
 	return nil
 }

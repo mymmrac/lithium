@@ -17,7 +17,9 @@ var viewsFS embed.FS
 //go:embed public/*
 var publicFS embed.FS
 
-func LoadViews() (fiber.Views, error) {
+type Views fiber.Views
+
+func LoadViews() (Views, error) {
 	viewsDirFR, err := fs.Sub(viewsFS, "views")
 	if err != nil {
 		return nil, fmt.Errorf("load views filesystem: %w", err)
