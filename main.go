@@ -24,10 +24,11 @@ import (
 
 func main() {
 	cmd := cobra.Command{
-		Use:     "lithium",
-		Short:   "Lithium is a platform for running WASM modules as lambda functions",
-		RunE:    run,
-		Version: fmt.Sprintf("%s (%s), built at %s", version.Version(), version.Modified(), version.BuildTime()),
+		Use:          "lithium",
+		Short:        "Lithium is a platform for running WASM modules as lambda functions",
+		RunE:         run,
+		Version:      fmt.Sprintf("%s (%s), built at %s", version.Version(), version.Modified(), version.BuildTime()),
+		SilenceUsage: true,
 	}
 
 	ctx, cancel := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)

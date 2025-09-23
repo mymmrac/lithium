@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
+	"os"
 
 	"github.com/spf13/viper"
 	"github.com/uptrace/bun"
@@ -30,14 +31,20 @@ func init() { //nolint:gochecknoinits
 }
 
 func RunMigrations(ctx context.Context, db *bun.DB) error {
-	migrations := migrate.NewMigrations(
-		migrate.WithMigrationsDirectory("./migrations"),
-	)
+	migrations := migrate.NewMigrations()
+
+	if err := migrations.Discover(os.DirFS("./migrations")); err != nil {
+		return fmt.Errorf("discover migrations: %w", err)
+	}
 
 	migrator := migrate.NewMigrator(db, migrations,
 		migrate.WithTableName("migrations"),
 		migrate.WithLocksTableName("migrations_locks"),
 	)
+
+	if err := migrator.Init(ctx); err != nil {
+		return fmt.Errorf("migrator init: %w", err)
+	}
 
 	if err := migrator.Lock(ctx); err != nil {
 		return fmt.Errorf("lock migrations: %w", err)
