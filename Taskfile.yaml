@@ -15,6 +15,12 @@ tasks:
       - task: lint
       - task: test
 
+  migration:
+    desc: "Create new migration"
+    cmds:
+      - touch "./migrations/$(date -u '+%Y%m%d%H%M%S')_{{ .CLI_ARGS }}.up.sql"
+      - touch "./migrations/$(date -u '+%Y%m%d%H%M%S')_{{ .CLI_ARGS }}.down.sql"
+
   fmt:
     desc: "Run formatters"
     deps: [ install:lint ]

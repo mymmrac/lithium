@@ -14,6 +14,7 @@ import (
 	"github.com/mymmrac/lithium/pkg"
 	"github.com/mymmrac/lithium/pkg/handler/auth"
 	"github.com/mymmrac/lithium/pkg/handler/static"
+	"github.com/mymmrac/lithium/pkg/module/db"
 	"github.com/mymmrac/lithium/pkg/module/logger"
 	"github.com/mymmrac/lithium/pkg/module/runner"
 	_ "github.com/mymmrac/lithium/pkg/module/server"
@@ -54,6 +55,7 @@ func run(cmd *cobra.Command, _ []string) error {
 	logger.Infow(ctx, "starting lithium", "version", version.Version())
 	err := pkg.DI(ctx, v).
 		Invoke(
+			db.RunMigrations,
 			static.RegisterHandlers,
 			auth.RegisterHandlers,
 			runner.RunAndWait,
