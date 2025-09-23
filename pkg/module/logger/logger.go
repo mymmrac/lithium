@@ -6,7 +6,7 @@ import (
 	"go.uber.org/zap"
 )
 
-// Logger representation
+// Logger representation.
 type Logger interface {
 	With(args ...any) Logger
 	WithOptions(opts ...zap.Option) Logger

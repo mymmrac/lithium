@@ -6,7 +6,7 @@ type ctxKey struct{}
 
 var ctxKeyValue ctxKey //nolint:gochecknoglobals
 
-// FromContext returns logger from context
+// FromContext returns logger from context.
 func FromContext(ctx context.Context) Logger {
 	log, ok := ctx.Value(ctxKeyValue).(Logger)
 	if !ok {
@@ -15,12 +15,12 @@ func FromContext(ctx context.Context) Logger {
 	return log
 }
 
-// ToContext adds logger to context
+// ToContext adds logger to context.
 func ToContext(ctx context.Context, log Logger) context.Context {
 	return context.WithValue(ctx, ctxKeyValue, log)
 }
 
-// With adds logger to context with specified fields
+// With adds logger to context with specified fields.
 func With(ctx context.Context, args ...any) context.Context {
 	return ToContext(ctx, FromContext(ctx).With(args...))
 }

@@ -11,19 +11,19 @@ import (
 
 var defaultLogger Logger //nolint:gochecknoglobals
 
-// SetDefaultLogger sets default logger
+// SetDefaultLogger sets default logger.
 func SetDefaultLogger(log Logger) {
 	defaultLogger = log
 }
 
 var atomicLevel = zap.NewAtomicLevelAt(zap.DebugLevel) //nolint:gochecknoglobals
 
-// AtomicLevel returns global log level
+// AtomicLevel returns global log level.
 func AtomicLevel() zap.AtomicLevel {
 	return atomicLevel
 }
 
-// SetLevel sets global log level
+// SetLevel sets global log level.
 func SetLevel(lvl string) {
 	l := zapcore.DebugLevel
 	switch strings.ToLower(lvl) {

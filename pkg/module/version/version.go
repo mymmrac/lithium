@@ -20,27 +20,27 @@ var (
 	buildTime = unknown
 )
 
-// Name returns the name of the application
+// Name returns the name of the application.
 func Name() string {
 	return name
 }
 
-// Version returns the version of the application
+// Version returns the version of the application.
 func Version() string {
 	return version
 }
 
-// Revision returns the revision of the application
+// Revision returns the revision of the application.
 func Revision() string {
 	return revision
 }
 
-// Modified returns the modification status (if the source tree was modified) of the application
+// Modified returns the modification status (if the source tree was modified) of the application.
 func Modified() string {
 	return modified
 }
 
-// BuildTime returns the build time of the application
+// BuildTime returns the build time of the application.
 func BuildTime() string {
 	return buildTime
 }
