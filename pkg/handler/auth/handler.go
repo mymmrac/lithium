@@ -3,6 +3,7 @@ package auth
 import (
 	"crypto/rand"
 	"errors"
+	"time"
 
 	"github.com/gofiber/fiber/v3"
 
@@ -62,10 +63,10 @@ func (a *auth) loginHandler(fCtx fiber.Ctx) error {
 	}
 
 	fCtx.Cookie(&fiber.Cookie{
-		Name:        tokenCookie,
-		Value:       rand.Text() + "_" + userModel.ID.String(),
-		HTTPOnly:    true,
-		SessionOnly: true,
+		Name:     tokenCookie,
+		Value:    rand.Text() + "_" + userModel.ID.String(),
+		HTTPOnly: true,
+		Expires:  time.Now().Add(24 * time.Hour),
 	})
 
 	return fCtx.JSON(fiber.Map{"ok": true})
@@ -101,6 +102,10 @@ func (a *auth) registerHandler(fCtx fiber.Ctx) error {
 }
 
 func (a *auth) logoutHandler(fCtx fiber.Ctx) error {
-	fCtx.ClearCookie(tokenCookie)
+	fCtx.Cookie(&fiber.Cookie{
+		Name:     tokenCookie,
+		HTTPOnly: true,
+		Expires:  time.Now().Add(-1 * time.Hour),
+	})
 	return fCtx.Redirect().To("/")
 }
