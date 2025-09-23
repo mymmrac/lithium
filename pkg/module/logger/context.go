@@ -4,7 +4,7 @@ import "context"
 
 type ctxKey struct{}
 
-var ctxKeyValue ctxKey
+var ctxKeyValue ctxKey //nolint:gochecknoglobals
 
 // FromContext returns logger from context
 func FromContext(ctx context.Context) Logger {

@@ -33,7 +33,7 @@ type Logger interface {
 	Fatalw(msg string, keysAndValues ...any)
 }
 
-var skipOne = zap.AddCallerSkip(1)
+var skipOne = zap.AddCallerSkip(1) //nolint:gochecknoglobals
 
 func Debug(ctx context.Context, args ...any) {
 	FromContext(ctx).WithOptions(skipOne).Debug(args...)

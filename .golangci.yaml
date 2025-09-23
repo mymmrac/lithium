@@ -56,6 +56,7 @@ linters:
         - name: struct-tag
           arguments:
             - "validate,-"
+            - "validate,omitempty"
         - name: line-length-limit
           disabled: true
         - name: exported

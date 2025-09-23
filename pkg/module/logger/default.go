@@ -9,14 +9,14 @@ import (
 	"go.uber.org/zap/zapcore"
 )
 
-var defaultLogger Logger
+var defaultLogger Logger //nolint:gochecknoglobals
 
 // SetDefaultLogger sets default logger
 func SetDefaultLogger(log Logger) {
 	defaultLogger = log
 }
 
-var atomicLevel = zap.NewAtomicLevelAt(zap.DebugLevel)
+var atomicLevel = zap.NewAtomicLevelAt(zap.DebugLevel) //nolint:gochecknoglobals
 
 // AtomicLevel returns global log level
 func AtomicLevel() zap.AtomicLevel {
@@ -45,7 +45,7 @@ func SetLevel(lvl string) {
 	atomicLevel.SetLevel(l)
 }
 
-func init() {
+func init() { //nolint:gochecknoinits
 	var cores []zapcore.Core
 
 	cfg := zap.NewProductionEncoderConfig()

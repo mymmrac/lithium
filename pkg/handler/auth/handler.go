@@ -2,7 +2,6 @@ package auth
 
 import (
 	"crypto/rand"
-	"fmt"
 
 	"github.com/gofiber/fiber/v3"
 )
@@ -32,7 +31,7 @@ func (a *auth) loginHandler(fCtx fiber.Ctx) error {
 		return fiber.NewError(fiber.StatusBadRequest)
 	}
 
-	fmt.Println(request)
+	// fmt.Println(request)
 
 	fCtx.Cookie(&fiber.Cookie{
 		Name:        tokenCookie,
@@ -45,6 +44,7 @@ func (a *auth) loginHandler(fCtx fiber.Ctx) error {
 }
 
 func (a *auth) registerHandler(fCtx fiber.Ctx) error {
+	_ = fCtx
 	return nil
 }
 

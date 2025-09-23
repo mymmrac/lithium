@@ -1,5 +1,6 @@
 # IDE files
 .idea/
 
-# Binaries
+# Binaries & outputs
 bin/
+.task/

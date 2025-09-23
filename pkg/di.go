@@ -10,10 +10,6 @@ import (
 	"github.com/mymmrac/lithium/pkg/handler/static"
 	"github.com/mymmrac/lithium/pkg/module/di"
 	"github.com/mymmrac/lithium/pkg/module/version"
-
-	_ "github.com/mymmrac/lithium/pkg/module/runner"
-	_ "github.com/mymmrac/lithium/pkg/module/server"
-	_ "github.com/mymmrac/lithium/pkg/module/validator"
 )
 
 func DI(ctx context.Context, v *viper.Viper) rdi.DI {

@@ -10,6 +10,8 @@ import (
 const unknown = "unknown"
 
 // Build information
+//
+//nolint:gochecknoglobals
 var (
 	name      = unknown
 	version   = unknown
@@ -43,7 +45,7 @@ func BuildTime() string {
 	return buildTime
 }
 
-func init() {
+func init() { //nolint:gochecknoinits,gocognit
 	// Handle case when info was provided at build time
 	if name != unknown && version != unknown && revision != unknown && modified != unknown && buildTime != unknown {
 		return

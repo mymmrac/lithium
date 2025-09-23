@@ -16,6 +16,8 @@ import (
 	"github.com/mymmrac/lithium/pkg/handler/static"
 	"github.com/mymmrac/lithium/pkg/module/logger"
 	"github.com/mymmrac/lithium/pkg/module/runner"
+	_ "github.com/mymmrac/lithium/pkg/module/server"
+	_ "github.com/mymmrac/lithium/pkg/module/validator"
 	"github.com/mymmrac/lithium/pkg/module/version"
 )
 
@@ -31,7 +33,7 @@ func main() {
 	defer cancel()
 
 	if err := cmd.ExecuteContext(ctx); err != nil {
-		os.Exit(1)
+		os.Exit(1) //nolint:gocritic
 	}
 }
 
