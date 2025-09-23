@@ -56,7 +56,7 @@
 
         <div>or</div>
 
-        <div x-data="{ open: false }">
+        <div x-data="registerForm()">
             <button @click="open = true"
                     class="px-4 py-2 bg-blue-400 rounded shadow hover:bg-blue-600 hover:cursor-pointer transition">
                 Register
@@ -66,42 +66,48 @@
                  class="fixed inset-0 bg-black/50 flex items-center justify-center z-40">
                 <div x-show="open" x-transition @keydown.escape.window="open = false"
                      class="bg-white rounded-xl shadow-xl max-w-md w-full p-6 relative z-50">
-                    <div class="flex justify-between items-center border-b pb-3">
-                        <h2 class="text-xl font-semibold">Register</h2>
-                        <button @click="open = false" class="text-gray-500 hover:text-gray-700">
-                            ✕
-                        </button>
-                    </div>
-
-                    <div class="mt-4 flex flex-col gap-2">
-                        <div class="flex flex-col gap-2">
-                            <label for="register-email">Email</label>
-                            <input type="email" id="register-email" placeholder="Email" class="border rounded p-2">
+                    <form @submit.prevent="await register()">
+                        <div class="flex justify-between items-center border-b pb-3">
+                            <h2 class="text-xl font-semibold">Register</h2>
+                            <button @click="open = false" type="button" class="text-gray-500 hover:text-gray-700">
+                                ✕
+                            </button>
                         </div>
 
-                        <div class="flex flex-col gap-2">
-                            <label for="register-password">Password</label>
-                            <input type="password" id="register-password" placeholder="Password"
-                                   class="border rounded p-2">
+                        <div class="mt-4 flex flex-col gap-2">
+                            <div class="flex flex-col gap-2">
+                                <label for="register-email">Email</label>
+                                <input x-model="email" type="email" id="register-email" placeholder="Email"
+                                       class="border rounded p-2">
+                            </div>
+
+                            <div class="flex flex-col gap-2">
+                                <label for="register-password">Password</label>
+                                <input x-model="password" type="password" id="register-password" placeholder="Password"
+                                       class="border rounded p-2">
+                            </div>
+
+                            <div class="flex flex-col gap-2">
+                                <label for="register-confirm-password">Confirm password</label>
+                                <input x-model="confirmPassword" type="password" id="register-confirm-password"
+                                       placeholder="Password"
+                                       class="border rounded p-2">
+                            </div>
+
+                            <p x-show="error" x-text="error" class="text-red-500 text-sm mt-2"></p>
                         </div>
 
-                        <div class="flex flex-col gap-2">
-                            <label for="register-confirm-password">Confirm password</label>
-                            <input type="password" id="register-confirm-password" placeholder="Password"
-                                   class="border rounded p-2">
+                        <div class="mt-6 flex justify-around gap-2">
+                            <button @click="open = false" type="button"
+                                    class="px-4 py-2 bg-gray-200 rounded hover:bg-gray-300 hover:cursor-pointer transition">
+                                Cancel
+                            </button>
+                            <button type="submit"
+                                    class="px-4 py-2 bg-blue-400 rounded hover:bg-blue-600 hover:cursor-pointer transition">
+                                Register
+                            </button>
                         </div>
-                    </div>
-
-                    <div class="mt-6 flex justify-around gap-2">
-                        <button @click="open = false"
-                                class="px-4 py-2 bg-gray-200 rounded hover:bg-gray-300 hover:cursor-pointer transition">
-                            Cancel
-                        </button>
-                        <button @click="open = false"
-                                class="px-4 py-2 bg-blue-400 rounded hover:bg-blue-600 hover:cursor-pointer transition">
-                            Register
-                        </button>
-                    </div>
+                    </form>
                 </div>
             </div>
         </div>
@@ -117,8 +123,13 @@
             error: "",
 
             async login() {
-                console.log("LOGIN")
                 this.error = ""
+
+                if (this.email === "" || this.password === "") {
+                    this.error = "Empty email or password"
+                    return
+                }
+
                 try {
                     let res = await fetch("/api/login", {
                         method: "POST",
@@ -132,6 +143,54 @@
                     if (!res.ok) {
                         let msg = await res.text()
                         throw new Error(msg || "Login failed")
+                    }
+
+                    let data = await res.json()
+                    console.log("Logged in:", data)
+
+                    this.open = false
+                    window.location.href = "/dashboard"
+                } catch (err) {
+                    this.error = err.message
+                }
+            },
+        }
+    }
+
+    function registerForm() {
+        return {
+            open: false,
+            email: "",
+            password: "",
+            confirmPassword: "",
+            error: "",
+
+            async register() {
+                this.error = ""
+
+                if (this.email === "" || this.password === "") {
+                    this.error = "Empty email or password"
+                    return
+                }
+
+                if (this.password !== this.confirmPassword) {
+                    this.error = "Passwords do not match"
+                    return
+                }
+
+                try {
+                    let res = await fetch("/api/register", {
+                        method: "POST",
+                        headers: {"Content-Type": "application/json"},
+                        body: JSON.stringify({
+                            email: this.email,
+                            password: this.password,
+                        }),
+                    })
+
+                    if (!res.ok) {
+                        let msg = await res.text()
+                        throw new Error(msg || "Registration failed")
                     }
 
                     let data = await res.json()

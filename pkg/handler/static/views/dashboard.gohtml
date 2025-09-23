@@ -1,3 +1,31 @@
 <main>
     Dashboard
+    <button x-data="logoutButton()" @click="await logout()" type="button"
+            class="px-4 py-2 bg-blue-400 rounded hover:bg-blue-600 hover:cursor-pointer transition">
+        Logout
+    </button>
 </main>
+
+<script>
+    function logoutButton() {
+        return {
+            async logout() {
+                try {
+                    let res = await fetch("/api/logout", {
+                        method: "POST",
+                        headers: {"Content-Type": "application/json"},
+                    })
+
+                    if (!res.ok) {
+                        let msg = await res.text()
+                        throw new Error(msg || "Logout failed")
+                    }
+
+                    window.location.href = "/"
+                } catch (err) {
+                    console.log("logout", err)
+                }
+            },
+        }
+    }
+</script>
