@@ -34,6 +34,10 @@ func RegisterHandlers(router fiber.Router) error {
 		return fCtx.Render("index", nil, "layouts/main")
 	})
 
+	router.Get("/dashboard", func(fCtx fiber.Ctx) error {
+		return fCtx.Render("dashboard", nil, "layouts/main")
+	})
+
 	publicDirFR, err := fs.Sub(publicFS, "public")
 	if err != nil {
 		return fmt.Errorf("load public filesystem: %w", err)
