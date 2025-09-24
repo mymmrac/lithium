@@ -18,16 +18,16 @@ type handler struct {
 }
 
 func RegisterHandlers(router fiber.Router, auth authm.Auth, userRepository user.Repository) error {
-	a := &handler{
+	h := &handler{
 		auth:           auth,
 		userRepository: userRepository,
 	}
 
 	api := router.Group("/api")
 
-	api.Post("/login", a.loginHandler)
-	api.Post("/register", a.registerHandler)
-	api.Post("/logout", authm.RequireMiddleware, a.logoutHandler)
+	api.Post("/login", h.loginHandler)
+	api.Post("/register", h.registerHandler)
+	api.Post("/logout", authm.RequireMiddleware, h.logoutHandler)
 
 	return nil
 }

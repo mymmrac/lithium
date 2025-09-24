@@ -11,8 +11,10 @@ import (
 
 type Repository interface {
 	Create(ctx context.Context, model *Model) error
+	UpdateName(ctx context.Context, id, ownerID id.ID, name string) error
 	GetByOwnerID(ctx context.Context, ownerID id.ID) ([]Model, error)
-	GetByID(ctx context.Context, id id.ID) (*Model, bool, error)
+	GetByID(ctx context.Context, id, ownerID id.ID) (*Model, bool, error)
+	DeleteByID(ctx context.Context, id, ownerID id.ID) error
 }
 
 type repository struct {
@@ -33,22 +35,53 @@ func (r *repository) Create(ctx context.Context, model *Model) error {
 	return nil
 }
 
+func (r *repository) UpdateName(ctx context.Context, id, ownerID id.ID, name string) error {
+	_, err := r.tx.Extract(ctx).NewUpdate().
+		Model(&Model{}).
+		Set("name = ?", name).
+		Where("id = ?", id).
+		Where("owner_id = ?", ownerID).
+		Exec(ctx)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
 func (r *repository) GetByOwnerID(ctx context.Context, ownerID id.ID) ([]Model, error) {
 	var models []Model
-	_, err := r.tx.Extract(ctx).NewSelect().Model(&models).Where("owner_id = ?", ownerID).Exec(ctx)
+	err := r.tx.Extract(ctx).NewSelect().Model(&models).Where("owner_id = ?", ownerID).Scan(ctx)
 	if err != nil {
 		return nil, err
 	}
 	return models, nil
 }
 
-func (r *repository) GetByID(ctx context.Context, id id.ID) (*Model, bool, error) {
+func (r *repository) GetByID(ctx context.Context, id, ownerID id.ID) (*Model, bool, error) {
 	var model Model
-	if err := r.tx.Extract(ctx).NewSelect().Model(&model).Where("id = ?", id).Scan(ctx); err != nil {
+	err := r.tx.Extract(ctx).NewSelect().
+		Model(&model).
+		Where("id = ?", id).
+		Where("owner_id = ?", ownerID).
+		Scan(ctx)
+	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return nil, false, nil
 		}
 		return nil, false, err
 	}
 	return &model, true, nil
+}
+
+func (r *repository) DeleteByID(ctx context.Context, id, ownerID id.ID) error {
+	var model Model
+	_, err := r.tx.Extract(ctx).NewDelete().
+		Model(&model).
+		Where("id = ?", id).
+		Where("owner_id = ?", ownerID).
+		Exec(ctx)
+	if err != nil {
+		return err
+	}
+	return nil
 }

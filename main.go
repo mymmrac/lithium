@@ -13,6 +13,7 @@ import (
 
 	"github.com/mymmrac/lithium/pkg"
 	"github.com/mymmrac/lithium/pkg/handler/auth"
+	"github.com/mymmrac/lithium/pkg/handler/project"
 	"github.com/mymmrac/lithium/pkg/handler/static"
 	"github.com/mymmrac/lithium/pkg/module/db"
 	"github.com/mymmrac/lithium/pkg/module/logger"
@@ -59,6 +60,7 @@ func run(cmd *cobra.Command, _ []string) error {
 			db.RunMigrations,
 			static.RegisterHandlers,
 			auth.RegisterHandlers,
+			project.RegisterHandlers,
 			runner.RunAndWait,
 		)
 	if err != nil {
