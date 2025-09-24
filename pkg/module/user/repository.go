@@ -38,12 +38,12 @@ func (r *repository) Create(ctx context.Context, model *Model) error {
 }
 
 func (r *repository) GetByEmail(ctx context.Context, email string) (*Model, bool, error) {
-	var user Model
-	if err := r.tx.Extract(ctx).NewSelect().Model(&user).Where("email = ?", email).Scan(ctx); err != nil {
+	var model Model
+	if err := r.tx.Extract(ctx).NewSelect().Model(&model).Where("email = ?", email).Scan(ctx); err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return nil, false, nil
 		}
 		return nil, false, err
 	}
-	return &user, true, nil
+	return &model, true, nil
 }

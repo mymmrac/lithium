@@ -2,6 +2,7 @@ package auth
 
 import (
 	"errors"
+	"time"
 
 	"github.com/gofiber/fiber/v3"
 
@@ -85,10 +86,13 @@ func (h *handler) registerHandler(fCtx fiber.Ctx) error {
 		return fiber.NewError(fiber.StatusInternalServerError)
 	}
 
+	now := time.Now()
 	userModel := &user.Model{
-		ID:       id.New(),
-		Email:    request.Email,
-		Password: hashedPassword,
+		ID:        id.New(),
+		Email:     request.Email,
+		Password:  hashedPassword,
+		CreatedAt: now,
+		UpdatedAt: now,
 	}
 
 	err = h.userRepository.Create(fCtx, userModel)

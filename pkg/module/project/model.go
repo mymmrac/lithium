@@ -1,26 +1,19 @@
-package user
+package project
 
 import (
 	"time"
 
-	"github.com/golang-jwt/jwt/v5"
 	"github.com/uptrace/bun"
 
 	"github.com/mymmrac/lithium/pkg/module/id"
 )
 
 type Model struct {
-	bun.BaseModel `bun:"table:user"`
+	bun.BaseModel `bun:"table:project"`
 
 	ID        id.ID     `bun:"id,pk"`
-	Email     string    `bun:"email"`
-	Password  string    `bun:"password"`
+	OwnerID   id.ID     `bun:"owner_id"`
+	Name      string    `bun:"name"`
 	CreatedAt time.Time `bun:"created_at"`
 	UpdatedAt time.Time `bun:"updated_at"`
-}
-
-type Claims struct {
-	jwt.RegisteredClaims
-
-	UserID id.ID `json:"userId"`
 }
