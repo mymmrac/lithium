@@ -40,6 +40,19 @@ func MustUserFromContext(ctx context.Context) User {
 	return authUser
 }
 
+func RequireMiddleware(fCtx fiber.Ctx) error {
+	_, ok := UserFromContext(fCtx)
+	if ok {
+		return fCtx.Next()
+	}
+
+	if fCtx.Method() == fiber.MethodGet && !strings.HasPrefix(fCtx.Path(), "/api/") {
+		return fCtx.Redirect().To("/")
+	}
+
+	return fCtx.SendStatus(fiber.StatusUnauthorized)
+}
+
 type Auth interface {
 	Middleware(fCtx fiber.Ctx) error
 	GenerateAndSetToken(fCtx fiber.Ctx, userModel *user.Model) error
@@ -57,14 +70,9 @@ func NewAuth(cfg Config) Auth {
 }
 
 func (a *auth) Middleware(fCtx fiber.Ctx) error {
-	redirect := fCtx.Method() == fiber.MethodGet && !strings.HasPrefix(fCtx.Path(), "/api/")
-
 	token := fCtx.Cookies(tokenCookie)
 	if token == "" {
-		if redirect {
-			return fCtx.Redirect().To("/")
-		}
-		return fiber.ErrUnauthorized
+		return fCtx.Next()
 	}
 
 	var claims user.Claims
@@ -72,17 +80,11 @@ func (a *auth) Middleware(fCtx fiber.Ctx) error {
 		return []byte(a.cfg.JWTSecret), nil
 	}, jwt.WithExpirationRequired(), jwt.WithIssuedAt(), jwt.WithValidMethods([]string{jwt.SigningMethodHS256.Alg()}))
 	if err != nil {
-		if redirect {
-			return fCtx.Redirect().To("/")
-		}
-		return fiber.ErrUnauthorized
+		return fCtx.Next()
 	}
 
 	if !parsedToken.Valid {
-		if redirect {
-			return fCtx.Redirect().To("/")
-		}
-		return fiber.ErrUnauthorized
+		return fCtx.Next()
 	}
 
 	fCtx.Locals(userKey, User{

@@ -5,18 +5,18 @@ import (
 
 	"github.com/gofiber/fiber/v3"
 
-	"github.com/mymmrac/lithium/pkg/module/auth"
+	authm "github.com/mymmrac/lithium/pkg/module/auth"
 	"github.com/mymmrac/lithium/pkg/module/id"
 	"github.com/mymmrac/lithium/pkg/module/logger"
 	"github.com/mymmrac/lithium/pkg/module/user"
 )
 
 type handler struct {
-	auth           auth.Auth
+	auth           authm.Auth
 	userRepository user.Repository
 }
 
-func RegisterHandlers(router fiber.Router, auth auth.Auth, userRepository user.Repository) error {
+func RegisterHandlers(router fiber.Router, auth authm.Auth, userRepository user.Repository) error {
 	a := &handler{
 		auth:           auth,
 		userRepository: userRepository,
@@ -26,7 +26,7 @@ func RegisterHandlers(router fiber.Router, auth auth.Auth, userRepository user.R
 
 	api.Post("/login", a.loginHandler)
 	api.Post("/register", a.registerHandler)
-	api.Post("/logout", a.auth.Middleware, a.logoutHandler)
+	api.Post("/logout", authm.RequireMiddleware, a.logoutHandler)
 
 	return nil
 }

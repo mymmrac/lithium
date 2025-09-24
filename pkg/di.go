@@ -17,12 +17,14 @@ import (
 
 func DI(ctx context.Context, v *viper.Viper) rdi.DI {
 	return di.New(ctx, v).
-		MustProvide(func(views static.Views, v *validator.Validate) *fiber.App {
-			return fiber.New(fiber.Config{
+		MustProvide(func(v *validator.Validate, views static.Views, auth auth.Auth) *fiber.App {
+			app := fiber.New(fiber.Config{
 				AppName:         version.Name(),
 				Views:           views,
 				StructValidator: &FiberValidatorAdapter{v: v},
 			})
+			app.Use(auth.Middleware)
+			return app
 		}).
 		MustProvide(static.LoadViews).
 		MustProvide(auth.NewAuth).
