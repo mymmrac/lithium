@@ -1,7 +1,7 @@
 CREATE TABLE action
 (
     id          BIGINT PRIMARY KEY,
-    project_id  BIGINT       NOT NULL REFERENCES project (id) ON DELETE CASCADE,
+    project_id  BIGINT       NOT NULL REFERENCES project (id) ON DELETE RESTRICT,
     name        TEXT         NOT NULL,
     url         TEXT         NOT NULL,
     module_path TEXT         NOT NULL,

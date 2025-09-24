@@ -1,12 +1,57 @@
 <main>
-    Dashboard
+    <h1 class="text-3xl">Lithium - Dashboard</h1>
+
     <br>
+
     <button x-data="logoutButton()" @click="await logout()" type="button"
             class="px-4 py-2 bg-blue-400 rounded hover:bg-blue-600 hover:cursor-pointer transition">
         Logout
     </button>
-    <br>
-    {{ .UserID }}
+
+    <br><br>
+
+    <div x-data="createProjectForm()">
+        <button @click="open = true"
+                class="px-4 py-2 bg-green-400 rounded shadow hover:bg-green-600 hover:cursor-pointer transition">
+            Create Project
+        </button>
+
+        <div x-show="open" x-transition.opacity @click.self="open = false" style="display: none;"
+             class="fixed inset-0 bg-black/50 flex items-center justify-center z-40">
+            <div x-show="open" x-transition @keydown.escape.window="open = false"
+                 class="bg-white rounded-xl shadow-xl max-w-md w-full p-6 relative z-50">
+                <form @submit.prevent="await create()">
+                    <div class="flex justify-between items-center border-b pb-3">
+                        <h2 class="text-xl font-semibold">Create Project</h2>
+                        <button @click="open = false" type="button" class="text-gray-500 hover:text-gray-700">
+                            ✕
+                        </button>
+                    </div>
+
+                    <div class="mt-4 flex flex-col gap-2">
+                        <div class="flex flex-col gap-2">
+                            <label for="create-project-name">Name</label>
+                            <input x-model="name" type="text" id="create-project-name" placeholder="Name"
+                                   class="border rounded p-2">
+                        </div>
+
+                        <p x-show="error" x-text="error" class="text-red-500 text-sm mt-2"></p>
+                    </div>
+
+                    <div class="mt-6 flex justify-around gap-2">
+                        <button @click="open = false" type="button"
+                                class="px-4 py-2 bg-gray-200 rounded hover:bg-gray-300 hover:cursor-pointer transition">
+                            Cancel
+                        </button>
+                        <button type="submit"
+                                class="px-4 py-2 bg-green-400 rounded hover:bg-green-600 hover:cursor-pointer transition">
+                            Create
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
 </main>
 
 <script>
@@ -31,4 +76,42 @@
             },
         }
     }
+
+    function createProjectForm() {
+        return {
+            open: false,
+            name: "",
+            error: "",
+
+            async create() {
+                this.error = ""
+
+                if (this.name === "") {
+                    this.error = "Empty name"
+                    return
+                }
+
+                try {
+                    let res = await fetch("/api/project", {
+                        method: "POST",
+                        headers: {"Content-Type": "application/json"},
+                        body: JSON.stringify({
+                            name: this.name,
+                        }),
+                    })
+
+                    if (!res.ok) {
+                        let msg = await res.text()
+                        throw new Error(msg || "Creation failed")
+                    }
+
+                    this.open = false
+                    window.location.href = "/dashboard"
+                } catch (err) {
+                    this.error = err.message
+                }
+            },
+        }
+    }
+
 </script>
