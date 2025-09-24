@@ -2,7 +2,9 @@ package auth
 
 import (
 	"context"
+	"errors"
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/gofiber/fiber/v3"
@@ -30,6 +32,14 @@ func UserFromContext(ctx context.Context) (User, bool) {
 	return authUser, true
 }
 
+func MustUserFromContext(ctx context.Context) User {
+	authUser, ok := UserFromContext(ctx)
+	if !ok {
+		panic(errors.New("user not found in context"))
+	}
+	return authUser
+}
+
 type Auth interface {
 	Middleware(fCtx fiber.Ctx) error
 	GenerateAndSetToken(fCtx fiber.Ctx, userModel *user.Model) error
@@ -47,8 +57,13 @@ func NewAuth(cfg Config) Auth {
 }
 
 func (a *auth) Middleware(fCtx fiber.Ctx) error {
+	redirect := fCtx.Method() == fiber.MethodGet && !strings.HasPrefix(fCtx.Path(), "/api/")
+
 	token := fCtx.Cookies(tokenCookie)
 	if token == "" {
+		if redirect {
+			return fCtx.Redirect().To("/")
+		}
 		return fiber.ErrUnauthorized
 	}
 
@@ -57,10 +72,16 @@ func (a *auth) Middleware(fCtx fiber.Ctx) error {
 		return []byte(a.cfg.JWTSecret), nil
 	}, jwt.WithExpirationRequired(), jwt.WithIssuedAt(), jwt.WithValidMethods([]string{jwt.SigningMethodHS256.Alg()}))
 	if err != nil {
+		if redirect {
+			return fCtx.Redirect().To("/")
+		}
 		return fiber.ErrUnauthorized
 	}
 
 	if !parsedToken.Valid {
+		if redirect {
+			return fCtx.Redirect().To("/")
+		}
 		return fiber.ErrUnauthorized
 	}
 

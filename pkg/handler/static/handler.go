@@ -10,7 +10,7 @@ import (
 	"github.com/gofiber/fiber/v3/middleware/static"
 	"github.com/gofiber/template/html/v2"
 
-	"github.com/mymmrac/lithium/pkg/module/auth"
+	authm "github.com/mymmrac/lithium/pkg/module/auth"
 )
 
 //go:embed views/*
@@ -31,13 +31,15 @@ func LoadViews() (Views, error) {
 	return views, nil
 }
 
-func RegisterHandlers(router fiber.Router, auth auth.Auth) error {
+func RegisterHandlers(router fiber.Router, auth authm.Auth) error {
 	router.Get("/", func(fCtx fiber.Ctx) error {
 		return fCtx.Render("index", nil, "layouts/main")
 	})
 
 	router.Get("/dashboard", auth.Middleware, func(fCtx fiber.Ctx) error {
-		return fCtx.Render("dashboard", nil, "layouts/main")
+		return fCtx.Render("dashboard", fiber.Map{
+			"UserID": authm.MustUserFromContext(fCtx).ID,
+		}, "layouts/main")
 	})
 
 	publicDirFR, err := fs.Sub(publicFS, "public")

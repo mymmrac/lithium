@@ -1,9 +1,12 @@
 <main>
     Dashboard
+    <br>
     <button x-data="logoutButton()" @click="await logout()" type="button"
             class="px-4 py-2 bg-blue-400 rounded hover:bg-blue-600 hover:cursor-pointer transition">
         Logout
     </button>
+    <br>
+    {{ .UserID }}
 </main>
 
 <script>
