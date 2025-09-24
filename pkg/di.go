@@ -9,8 +9,10 @@ import (
 	"github.com/spf13/viper"
 
 	"github.com/mymmrac/lithium/pkg/handler/static"
+	"github.com/mymmrac/lithium/pkg/module/action"
 	"github.com/mymmrac/lithium/pkg/module/auth"
 	"github.com/mymmrac/lithium/pkg/module/di"
+	"github.com/mymmrac/lithium/pkg/module/project"
 	"github.com/mymmrac/lithium/pkg/module/storage"
 	"github.com/mymmrac/lithium/pkg/module/user"
 	"github.com/mymmrac/lithium/pkg/module/version"
@@ -30,7 +32,9 @@ func DI(ctx context.Context, v *viper.Viper) rdi.DI {
 		MustProvide(static.LoadViews).
 		MustProvide(auth.NewAuth).
 		MustProvide(storage.NewStorage).
-		MustProvide(user.NewRepository)
+		MustProvide(user.NewRepository).
+		MustProvide(project.NewRepository).
+		MustProvide(action.NewRepository)
 }
 
 type FiberValidatorAdapter struct {
