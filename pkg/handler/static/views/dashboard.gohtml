@@ -13,7 +13,7 @@
     <div x-data="createProjectForm()">
         <button @click="open = true"
                 class="px-4 py-2 bg-green-400 rounded shadow hover:bg-green-600 hover:cursor-pointer transition">
-            Create Project
+            Create New Project
         </button>
 
         <div x-show="open" x-transition.opacity @click.self="open = false" style="display: none;"
@@ -51,6 +51,19 @@
                 </form>
             </div>
         </div>
+    </div>
+
+    <br>
+
+    <div x-data="{ projects: [] }" x-init="projects = await (await fetch('/api/project')).json()">
+        <h2 class="text-xl">Projects</h2>
+        <ul>
+            <template x-for="project in projects">
+                <li>
+                    <a :href="'/project/' + project.id" x-text="project.name" class="text-green-600 hover:underline"></a>
+                </li>
+            </template>
+        </ul>
     </div>
 </main>
 
