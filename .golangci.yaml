@@ -15,6 +15,7 @@ linters:
     - mnd
     - nlreturn
     - noinlineerr
+    - nonamedreturns
     - tagliatelle
     - testpackage
     - varnamelen

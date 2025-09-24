@@ -36,7 +36,7 @@ func RegisterHandlers(router fiber.Router) error {
 
 	router.Get("/dashboard", func(fCtx fiber.Ctx) error {
 		return fCtx.Render("dashboard", nil, "layouts/main")
-	})
+	}) // TODO: Add auth middleware
 
 	publicDirFR, err := fs.Sub(publicFS, "public")
 	if err != nil {

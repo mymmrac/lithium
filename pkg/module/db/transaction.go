@@ -36,7 +36,9 @@ type transaction struct {
 	db *bun.DB
 }
 
-// transactionKey key for transaction in context
+// transactionKey key for transaction in context.
+//
+//nolint:gochecknoglobals
 var transactionKey = transactionKeyType{}
 
 type transactionKeyType struct{}

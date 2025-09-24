@@ -6,6 +6,7 @@ require (
 	github.com/go-playground/validator/v10 v10.27.0
 	github.com/gofiber/fiber/v3 v3.0.0-rc.1
 	github.com/gofiber/template/html/v2 v2.1.3
+	github.com/golang-jwt/jwt/v5 v5.3.0
 	github.com/rathil/rdi v1.2.1
 	github.com/sony/sonyflake v1.3.0
 	github.com/spf13/cobra v1.10.1

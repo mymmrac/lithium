@@ -12,12 +12,12 @@ import (
 	"golang.org/x/crypto/argon2"
 )
 
-var (
-	argonTime    uint32 = 3         // iterations
-	argonMemory  uint32 = 64 * 1024 // 64 MB in KiB
-	argonThreads uint8  = 2         // parallelism
-	argonKeyLen  uint32 = 32        // 32 bytes output
-	saltLen             = 16        // 16 bytes salt
+const (
+	argonTime    = 3         // iterations
+	argonMemory  = 64 * 1024 // 64 MB in KiB
+	argonThreads = 2         // parallelism
+	argonKeyLen  = 32        // 32 bytes output
+	saltLen      = 16        // 16 bytes salt
 )
 
 // HashPassword returns a PHC-style encoded argon2id string to store in DB.
@@ -41,6 +41,8 @@ func HashPassword(password string) (string, error) {
 
 // ComparePasswordAndHash verifies password against the PHC-style encoded hash.
 // needsRehash == true if the stored hash uses weaker params than current defaults.
+//
+//nolint:funlen
 func ComparePasswordAndHash(password, encodedHash string) (match bool, needsRehash bool, err error) {
 	parts := strings.Split(encodedHash, "$")
 	// Expected parts: ["", "argon2id", "v=19", "m=...,t=...,p=...", "salt", "hash"]
@@ -109,15 +111,19 @@ func ComparePasswordAndHash(password, encodedHash string) (match bool, needsReha
 	if err != nil {
 		return false, false, fmt.Errorf("bad password hash encoding: %w", err)
 	}
+	hashLen := len(actualHash)
+	if hashLen >= 4096 {
+		return false, false, fmt.Errorf("password hash too long: %d", hashLen)
+	}
 
 	// Compute hash with extracted params
-	computed := argon2.IDKey([]byte(password), salt, time, mem, threads, uint32(len(actualHash)))
+	computed := argon2.IDKey([]byte(password), salt, time, mem, threads, uint32(hashLen))
 
 	// Constant-time compare
 	if subtle.ConstantTimeCompare(computed, actualHash) == 1 {
 		// Check whether params are weaker than current defaults -> suggest rehash
 		needsRehash = (mem < argonMemory) || (time < argonTime) || (threads < argonThreads) ||
-			(uint32(len(actualHash)) < argonKeyLen)
+			(len(actualHash) < argonKeyLen)
 		return true, needsRehash, nil
 	}
 

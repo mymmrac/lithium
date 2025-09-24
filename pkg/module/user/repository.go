@@ -7,11 +7,10 @@ import (
 	"strings"
 
 	"github.com/mymmrac/lithium/pkg/module/db"
-	"github.com/mymmrac/lithium/pkg/module/id"
 )
 
 type Repository interface {
-	Create(ctx context.Context, id id.ID, email, password string) error
+	Create(ctx context.Context, model *Model) error
 	GetByEmail(ctx context.Context, email string) (*Model, bool, error)
 }
 
@@ -27,12 +26,8 @@ func NewRepository(tx db.Transaction) Repository {
 
 var ErrAlreadyExists = errors.New("user already exists")
 
-func (r *repository) Create(ctx context.Context, id id.ID, email, password string) error {
-	_, err := r.tx.Extract(ctx).NewInsert().Model(&Model{
-		ID:       id,
-		Email:    email,
-		Password: password,
-	}).Exec(ctx)
+func (r *repository) Create(ctx context.Context, model *Model) error {
+	_, err := r.tx.Extract(ctx).NewInsert().Model(model).Exec(ctx)
 	if err != nil {
 		if strings.Contains(strings.ToLower(err.Error()), "duplicate key value violates unique constraint") {
 			return ErrAlreadyExists
