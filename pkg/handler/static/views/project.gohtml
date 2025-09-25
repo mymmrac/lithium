@@ -7,6 +7,51 @@
             Dashboard
         </button>
     </a>
+
+    <br><br>
+
+    <div x-data="updateProjectForm(project)">
+        <button @click="open = true"
+                class="px-4 py-2 bg-green-400 rounded shadow hover:bg-green-600 hover:cursor-pointer transition">
+            Update Project
+        </button>
+
+        <div x-show="open" x-transition.opacity @click.self="open = false" style="display: none;"
+             class="fixed inset-0 bg-black/50 flex items-center justify-center z-40">
+            <div x-show="open" x-transition @keydown.escape.window="open = false"
+                 class="bg-white rounded-xl shadow-xl max-w-md w-full p-6 relative z-50">
+                <form @submit.prevent="await update(); await loadProject()">
+                    <div class="flex justify-between items-center border-b pb-3">
+                        <h2 class="text-xl font-semibold">Update Project</h2>
+                        <button @click="open = false" type="button" class="text-gray-500 hover:text-gray-700">
+                            ✕
+                        </button>
+                    </div>
+
+                    <div class="mt-4 flex flex-col gap-2">
+                        <div class="flex flex-col gap-2">
+                            <label for="create-project-name">Name</label>
+                            <input x-model="name" type="text" id="create-project-name" placeholder="Name"
+                                   class="border rounded p-2">
+                        </div>
+
+                        <p x-show="error" x-text="error" class="text-red-500 text-sm mt-2"></p>
+                    </div>
+
+                    <div class="mt-6 flex justify-around gap-2">
+                        <button @click="open = false" type="button"
+                                class="px-4 py-2 bg-gray-200 rounded hover:bg-gray-300 hover:cursor-pointer transition">
+                            Cancel
+                        </button>
+                        <button type="submit"
+                                class="px-4 py-2 bg-green-400 rounded hover:bg-green-600 hover:cursor-pointer transition">
+                            Update
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
 </main>
 
 <script>
@@ -17,6 +62,54 @@
 
             async loadProject() {
                 this.project = await (await fetch(`/api/project/${ this.projectId }`)).json()
+            },
+        }
+    }
+
+    function updateProjectForm() {
+        return {
+            open: false,
+            projectId: "",
+            name: "",
+            error: "",
+
+            init() {
+                this.$watch("project", value => {
+                    if (this.error !== "") {
+                        return
+                    }
+                    this.projectId = value.id
+                    this.name = value.name
+                })
+            },
+
+            async update() {
+                this.error = ""
+
+                if (this.name === "") {
+                    this.error = "Empty name"
+                    return
+                }
+
+                try {
+                    let res = await fetch("/api/project", {
+                        method: "PUT",
+                        headers: {"Content-Type": "application/json"},
+                        body: JSON.stringify({
+                            id: this.projectId,
+                            name: this.name,
+                        }),
+                    })
+
+                    if (!res.ok) {
+                        let msg = await res.text()
+                        throw new Error(msg || "Update failed")
+                    }
+
+                    this.open = false
+                } catch (err) {
+                    this.error = err.message
+                }
             },
         }
     }

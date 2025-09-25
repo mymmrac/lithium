@@ -58,6 +58,7 @@ func (h *handler) getHandler(fCtx fiber.Ctx) error {
 	}
 
 	if err := fCtx.Bind().URI(&request); err != nil {
+		logger.FromContext(fCtx).Warnw("get project, bad request", "error", err)
 		return fiber.NewError(fiber.StatusBadRequest)
 	}
 
@@ -78,10 +79,11 @@ func (h *handler) getHandler(fCtx fiber.Ctx) error {
 
 func (h *handler) createHandler(fCtx fiber.Ctx) error {
 	var request struct {
-		Name string `validate:"min=1,max=64"`
+		Name string `json:"name" validate:"min=1,max=64"`
 	}
 
 	if err := fCtx.Bind().Body(&request); err != nil {
+		logger.FromContext(fCtx).Warnw("create project, bad request", "error", err)
 		return fiber.NewError(fiber.StatusBadRequest)
 	}
 
@@ -103,11 +105,12 @@ func (h *handler) createHandler(fCtx fiber.Ctx) error {
 
 func (h *handler) updateHandler(fCtx fiber.Ctx) error {
 	var request struct {
-		ID   id.ID  `validate:"required"`
-		Name string `validate:"min=1,max=64"`
+		ID   id.ID  `json:"id"   validate:"required"`
+		Name string `json:"name" validate:"min=1,max=64"`
 	}
 
 	if err := fCtx.Bind().Body(&request); err != nil {
+		logger.FromContext(fCtx).Warnw("update project, bad request", "error", err)
 		return fiber.NewError(fiber.StatusBadRequest)
 	}
 
@@ -122,10 +125,11 @@ func (h *handler) updateHandler(fCtx fiber.Ctx) error {
 
 func (h *handler) deleteHandler(fCtx fiber.Ctx) error {
 	var request struct {
-		ID id.ID `validate:"required"`
+		ID id.ID `json:"id" validate:"required"`
 	}
 
 	if err := fCtx.Bind().Body(&request); err != nil {
+		logger.FromContext(fCtx).Warnw("delete project, bad request", "error", err)
 		return fiber.NewError(fiber.StatusBadRequest)
 	}
 
