@@ -133,6 +133,8 @@ func (h *handler) deleteHandler(fCtx fiber.Ctx) error {
 		return fiber.NewError(fiber.StatusBadRequest)
 	}
 
+	// TODO: Remove all actions (and modules)
+
 	err := h.projectRepository.DeleteByID(fCtx, request.ID, auth.MustUserFromContext(fCtx).ID)
 	if err != nil {
 		logger.FromContext(fCtx).Errorw("delete project", "error", err)
