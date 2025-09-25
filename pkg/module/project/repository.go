@@ -50,7 +50,11 @@ func (r *repository) UpdateName(ctx context.Context, id, ownerID id.ID, name str
 
 func (r *repository) GetByOwnerID(ctx context.Context, ownerID id.ID) ([]Model, error) {
 	var models []Model
-	err := r.tx.Extract(ctx).NewSelect().Model(&models).Where("owner_id = ?", ownerID).Scan(ctx)
+	err := r.tx.Extract(ctx).NewSelect().
+		Model(&models).
+		Where("owner_id = ?", ownerID).
+		Order("created_at DESC").
+		Scan(ctx)
 	if err != nil {
 		return nil, err
 	}

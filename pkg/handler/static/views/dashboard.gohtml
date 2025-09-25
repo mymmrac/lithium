@@ -1,4 +1,4 @@
-<main>
+<main x-data="projectsComponent()">
     <h1 class="text-3xl">Lithium - Dashboard</h1>
 
     <br>
@@ -20,7 +20,7 @@
              class="fixed inset-0 bg-black/50 flex items-center justify-center z-40">
             <div x-show="open" x-transition @keydown.escape.window="open = false"
                  class="bg-white rounded-xl shadow-xl max-w-md w-full p-6 relative z-50">
-                <form @submit.prevent="await create()">
+                <form @submit.prevent="await create(); await loadProjects()">
                     <div class="flex justify-between items-center border-b pb-3">
                         <h2 class="text-xl font-semibold">Create Project</h2>
                         <button @click="open = false" type="button" class="text-gray-500 hover:text-gray-700">
@@ -55,12 +55,13 @@
 
     <br>
 
-    <div x-data="{ projects: [] }" x-init="projects = await (await fetch('/api/project')).json()">
+    <div x-init="await loadProjects()">
         <h2 class="text-xl">Projects</h2>
         <ul>
             <template x-for="project in projects">
                 <li>
-                    <a :href="'/project/' + project.id" x-text="project.name" class="text-green-600 hover:underline"></a>
+                    <a :href="'/project/' + project.id" x-text="project.name"
+                       class="text-green-600 hover:underline"></a>
                 </li>
             </template>
         </ul>
@@ -86,6 +87,16 @@
                 } catch (err) {
                     console.log("logout", err)
                 }
+            },
+        }
+    }
+
+    function projectsComponent() {
+        return {
+            projects: [],
+
+            async loadProjects() {
+                this.projects = await (await fetch("/api/project")).json()
             },
         }
     }
@@ -119,7 +130,7 @@
                     }
 
                     this.open = false
-                    window.location.href = "/dashboard"
+                    this.name = ""
                 } catch (err) {
                     this.error = err.message
                 }
