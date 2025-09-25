@@ -1,0 +1,23 @@
+<main x-data="projectComponent()" x-init="await loadProject()">
+    <h1 class="text-3xl">Project <span x-text="project.name" class="text-green-600"></span></h1>
+    <br>
+
+    <a href="/dashboard">
+        <button type="button" class="px-4 py-2 bg-blue-400 rounded hover:bg-blue-600 hover:cursor-pointer transition">
+            Dashboard
+        </button>
+    </a>
+</main>
+
+<script>
+    function projectComponent() {
+        return {
+            projectId: "{{ .ProjectId }}",
+            project: {},
+
+            async loadProject() {
+                this.project = await (await fetch(`/api/project/${ this.projectId }`)).json()
+            },
+        }
+    }
+</script>

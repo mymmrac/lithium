@@ -41,8 +41,12 @@ func RegisterHandlers(router fiber.Router) error {
 	})
 
 	router.Get("/dashboard", auth.RequireMiddleware, func(fCtx fiber.Ctx) error {
-		return fCtx.Render("dashboard", fiber.Map{
-			"UserID": auth.MustUserFromContext(fCtx).ID,
+		return fCtx.Render("dashboard", nil, "layouts/main")
+	})
+
+	router.Get("/project/:projectID", auth.RequireMiddleware, func(fCtx fiber.Ctx) error {
+		return fCtx.Render("project", fiber.Map{
+			"ProjectId": fCtx.Params("projectID"),
 		}, "layouts/main")
 	})
 
