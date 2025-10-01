@@ -1,5 +1,9 @@
 <main x-data="projectComponent()" x-init="await loadProject()">
     <h1 class="text-3xl">Project <span x-text="project.name" class="text-green-600"></span></h1>
+    <h2 class="text-xl">
+        <a :href="window.location.protocol + '//' + project.subDomain + '.' + window.location.host" target="_blank"
+           x-text="project.subDomain + '.' + window.location.hostname" class="text-green-600 hover:cursor-pointer"></a>
+    </h2>
     <br>
 
     <a href="/dashboard">

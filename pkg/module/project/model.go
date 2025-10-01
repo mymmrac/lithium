@@ -14,6 +14,7 @@ type Model struct {
 	ID        id.ID     `bun:"id,pk"`
 	OwnerID   id.ID     `bun:"owner_id"`
 	Name      string    `bun:"name"`
+	SubDomain string    `bun:"sub_domain"`
 	CreatedAt time.Time `bun:"created_at"`
 	UpdatedAt time.Time `bun:"updated_at"`
 }

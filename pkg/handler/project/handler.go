@@ -1,6 +1,8 @@
 package project
 
 import (
+	"crypto/rand"
+	"strings"
 	"time"
 
 	"github.com/gofiber/fiber/v3"
@@ -30,8 +32,9 @@ func RegisterHandlers(router fiber.Router, projectRepository project.Repository)
 }
 
 type projectInfo struct {
-	ID   id.ID  `json:"id"`
-	Name string `json:"name"`
+	ID        id.ID  `json:"id"`
+	Name      string `json:"name"`
+	SubDomain string `json:"subDomain"`
 }
 
 func (h *handler) getAllHandler(fCtx fiber.Ctx) error {
@@ -44,8 +47,9 @@ func (h *handler) getAllHandler(fCtx fiber.Ctx) error {
 	response := make([]projectInfo, len(projects))
 	for i, model := range projects {
 		response[i] = projectInfo{
-			ID:   model.ID,
-			Name: model.Name,
+			ID:        model.ID,
+			Name:      model.Name,
+			SubDomain: model.SubDomain,
 		}
 	}
 
@@ -72,14 +76,15 @@ func (h *handler) getHandler(fCtx fiber.Ctx) error {
 	}
 
 	return fCtx.JSON(&projectInfo{
-		ID:   projectModel.ID,
-		Name: projectModel.Name,
+		ID:        projectModel.ID,
+		Name:      projectModel.Name,
+		SubDomain: projectModel.SubDomain,
 	})
 }
 
 func (h *handler) createHandler(fCtx fiber.Ctx) error {
 	var request struct {
-		Name string `json:"name" validate:"min=1,max=64"`
+		Name string `json:"name" validate:"alphanum_text,min=1,max=64"`
 	}
 
 	if err := fCtx.Bind().Body(&request); err != nil {
@@ -87,11 +92,16 @@ func (h *handler) createHandler(fCtx fiber.Ctx) error {
 		return fiber.NewError(fiber.StatusBadRequest)
 	}
 
+	request.Name = strings.TrimSpace(request.Name)
+	subDomainReplacer := strings.NewReplacer(" ", "-", "_", "-")
+	subDomain := subDomainReplacer.Replace(strings.ToLower(request.Name)) + "-" + strings.ToLower(rand.Text()[:4])
+
 	now := time.Now()
 	err := h.projectRepository.Create(fCtx, &project.Model{
 		ID:        id.New(),
 		OwnerID:   auth.MustUserFromContext(fCtx).ID,
 		Name:      request.Name,
+		SubDomain: subDomain,
 		CreatedAt: now,
 		UpdatedAt: now,
 	})
@@ -106,7 +116,7 @@ func (h *handler) createHandler(fCtx fiber.Ctx) error {
 func (h *handler) updateHandler(fCtx fiber.Ctx) error {
 	var request struct {
 		ID   id.ID  `json:"id"   validate:"required"`
-		Name string `json:"name" validate:"min=1,max=64"`
+		Name string `json:"name" validate:"alphanum_text,min=1,max=64"`
 	}
 
 	if err := fCtx.Bind().Body(&request); err != nil {

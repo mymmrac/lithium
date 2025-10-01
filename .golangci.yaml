@@ -57,6 +57,7 @@ linters:
           arguments:
             - "validate,-"
             - "validate,omitempty"
+            - "validate,alphanum_text"
         - name: line-length-limit
           disabled: true
         - name: exported
