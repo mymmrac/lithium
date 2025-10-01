@@ -27,10 +27,10 @@ func RegisterHandlers(router fiber.Router, actionRepository action.Repository, p
 	api := router.Group("/api/project/:projectID/action", auth.RequireMiddleware)
 
 	api.Get("/", h.getAllHandler)
-	api.Get("/:actionID", h.getHandler)
 	api.Post("/", h.createHandler)
-	api.Put("/", h.updateHandler)
-	api.Delete("/", h.deleteHandler)
+	api.Get("/:actionID", h.getHandler)
+	api.Put("/:actionID", h.updateHandler)
+	api.Delete("/:actionID", h.deleteHandler)
 }
 
 type actionInfo struct {
@@ -161,13 +161,13 @@ func (h *handler) createHandler(fCtx fiber.Ctx) error {
 func (h *handler) updateHandler(fCtx fiber.Ctx) error {
 	var request struct {
 		ProjectID id.ID    `uri:"projectID" validate:"required"`
-		ID        id.ID    `json:"id"       validate:"required"`
+		ID        id.ID    `uri:"actionID"  validate:"required"`
 		Name      string   `json:"name"     validate:"alphanum_text,min=1,max=64"`
 		Path      string   `json:"path"     validate:"uri"`
 		Methods   []string `json:"methods"  validate:"gt=0,unique,dive,oneof=GET,POST,PUT,PATCH,DELETE"` //nolint:revive
 	}
 
-	if err := fCtx.Bind().Body(&request); err != nil {
+	if err := fCtx.Bind().All(&request); err != nil {
 		logger.FromContext(fCtx).Warnw("update project, bad request", "error", err)
 		return fiber.NewError(fiber.StatusBadRequest)
 	}
@@ -194,10 +194,10 @@ func (h *handler) updateHandler(fCtx fiber.Ctx) error {
 
 func (h *handler) deleteHandler(fCtx fiber.Ctx) error {
 	var request struct {
-		ID id.ID `json:"id" validate:"required"`
+		ID id.ID `uri:"actionID" validate:"required"`
 	}
 
-	if err := fCtx.Bind().Body(&request); err != nil {
+	if err := fCtx.Bind().URI(&request); err != nil {
 		logger.FromContext(fCtx).Warnw("delete project, bad request", "error", err)
 		return fiber.NewError(fiber.StatusBadRequest)
 	}

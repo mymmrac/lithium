@@ -28,10 +28,10 @@ func RegisterHandlers(router fiber.Router, userRepository user.Repository, proje
 	api := router.Group("/api/project", auth.RequireMiddleware)
 
 	api.Get("/", h.getAllHandler)
-	api.Get("/:projectID", h.getHandler)
 	api.Post("/", h.createHandler)
-	api.Put("/", h.updateHandler)
-	api.Delete("/", h.deleteHandler)
+	api.Get("/:projectID", h.getHandler)
+	api.Put("/:projectID", h.updateHandler)
+	api.Delete("/:projectID", h.deleteHandler)
 }
 
 type projectInfo struct {
@@ -118,11 +118,11 @@ func (h *handler) createHandler(fCtx fiber.Ctx) error {
 
 func (h *handler) updateHandler(fCtx fiber.Ctx) error {
 	var request struct {
-		ID   id.ID  `json:"id"   validate:"required"`
-		Name string `json:"name" validate:"alphanum_text,min=1,max=64"`
+		ID   id.ID  `uri:"projectID" validate:"required"`
+		Name string `json:"name"     validate:"alphanum_text,min=1,max=64"`
 	}
 
-	if err := fCtx.Bind().Body(&request); err != nil {
+	if err := fCtx.Bind().All(&request); err != nil {
 		logger.FromContext(fCtx).Warnw("update project, bad request", "error", err)
 		return fiber.NewError(fiber.StatusBadRequest)
 	}
@@ -147,10 +147,10 @@ func (h *handler) updateHandler(fCtx fiber.Ctx) error {
 
 func (h *handler) deleteHandler(fCtx fiber.Ctx) error {
 	var request struct {
-		ID id.ID `json:"id" validate:"required"`
+		ID id.ID `uri:"projectID" validate:"required"`
 	}
 
-	if err := fCtx.Bind().Body(&request); err != nil {
+	if err := fCtx.Bind().URI(&request); err != nil {
 		logger.FromContext(fCtx).Warnw("delete project, bad request", "error", err)
 		return fiber.NewError(fiber.StatusBadRequest)
 	}

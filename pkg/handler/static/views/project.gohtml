@@ -123,11 +123,10 @@
                 }
 
                 try {
-                    let res = await fetch("/api/project", {
+                    let res = await fetch(`/api/project/${ this.projectId }`, {
                         method: "PUT",
                         headers: {"Content-Type": "application/json"},
                         body: JSON.stringify({
-                            id: this.projectId,
                             name: this.name,
                         }),
                     })
@@ -161,12 +160,9 @@
                     return
                 }
 
-                await fetch("/api/project", {
+                await fetch(`/api/project/${ this.projectId }`, {
                     method: "DELETE",
                     headers: {"Content-Type": "application/json"},
-                    body: JSON.stringify({
-                        id: this.projectId,
-                    }),
                 })
 
                 window.location.href = "/dashboard"
