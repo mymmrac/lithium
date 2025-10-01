@@ -12,6 +12,7 @@ import (
 	"github.com/spf13/viper"
 
 	"github.com/mymmrac/lithium/pkg"
+	"github.com/mymmrac/lithium/pkg/handler/action"
 	"github.com/mymmrac/lithium/pkg/handler/auth"
 	"github.com/mymmrac/lithium/pkg/handler/project"
 	"github.com/mymmrac/lithium/pkg/handler/static"
@@ -61,6 +62,7 @@ func run(cmd *cobra.Command, _ []string) error {
 			static.RegisterHandlers,
 			auth.RegisterHandlers,
 			project.RegisterHandlers,
+			action.RegisterHandlers,
 			runner.RunAndWait,
 		)
 	if err != nil {

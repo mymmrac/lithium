@@ -11,14 +11,17 @@ import (
 	"github.com/mymmrac/lithium/pkg/module/id"
 	"github.com/mymmrac/lithium/pkg/module/logger"
 	"github.com/mymmrac/lithium/pkg/module/project"
+	"github.com/mymmrac/lithium/pkg/module/user"
 )
 
 type handler struct {
+	userRepository    user.Repository
 	projectRepository project.Repository
 }
 
-func RegisterHandlers(router fiber.Router, projectRepository project.Repository) {
+func RegisterHandlers(router fiber.Router, userRepository user.Repository, projectRepository project.Repository) {
 	h := &handler{
+		userRepository:    userRepository,
 		projectRepository: projectRepository,
 	}
 
@@ -66,12 +69,12 @@ func (h *handler) getHandler(fCtx fiber.Ctx) error {
 		return fiber.NewError(fiber.StatusBadRequest)
 	}
 
-	model, found, err := h.projectRepository.GetByID(fCtx, auth.MustUserFromContext(fCtx).ID, request.ID)
+	model, found, err := h.projectRepository.GetByID(fCtx, request.ID)
 	if err != nil {
 		logger.FromContext(fCtx).Errorw("get project", "error", err)
 		return fiber.NewError(fiber.StatusInternalServerError)
 	}
-	if !found {
+	if !found || model.OwnerID != auth.MustUserFromContext(fCtx).ID {
 		return fiber.NewError(fiber.StatusNotFound)
 	}
 
@@ -124,7 +127,16 @@ func (h *handler) updateHandler(fCtx fiber.Ctx) error {
 		return fiber.NewError(fiber.StatusBadRequest)
 	}
 
-	err := h.projectRepository.UpdateName(fCtx, auth.MustUserFromContext(fCtx).ID, request.ID, request.Name)
+	model, found, err := h.projectRepository.GetByID(fCtx, request.ID)
+	if err != nil {
+		logger.FromContext(fCtx).Errorw("get user", "error", err)
+		return fiber.NewError(fiber.StatusInternalServerError)
+	}
+	if !found || model.OwnerID != auth.MustUserFromContext(fCtx).ID {
+		return fiber.NewError(fiber.StatusNotFound)
+	}
+
+	err = h.projectRepository.UpdateName(fCtx, request.ID, request.Name)
 	if err != nil {
 		logger.FromContext(fCtx).Errorw("update project", "error", err)
 		return fiber.NewError(fiber.StatusInternalServerError)
@@ -143,9 +155,18 @@ func (h *handler) deleteHandler(fCtx fiber.Ctx) error {
 		return fiber.NewError(fiber.StatusBadRequest)
 	}
 
+	model, found, err := h.projectRepository.GetByID(fCtx, request.ID)
+	if err != nil {
+		logger.FromContext(fCtx).Errorw("get user", "error", err)
+		return fiber.NewError(fiber.StatusInternalServerError)
+	}
+	if !found || model.OwnerID != auth.MustUserFromContext(fCtx).ID {
+		return fiber.NewError(fiber.StatusNotFound)
+	}
+
 	// TODO: Remove all actions (and modules)
 
-	err := h.projectRepository.DeleteByID(fCtx, auth.MustUserFromContext(fCtx).ID, request.ID)
+	err = h.projectRepository.DeleteByID(fCtx, request.ID)
 	if err != nil {
 		logger.FromContext(fCtx).Errorw("delete project", "error", err)
 		return fiber.NewError(fiber.StatusInternalServerError)

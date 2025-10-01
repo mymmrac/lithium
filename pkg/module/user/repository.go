@@ -7,10 +7,12 @@ import (
 	"strings"
 
 	"github.com/mymmrac/lithium/pkg/module/db"
+	"github.com/mymmrac/lithium/pkg/module/id"
 )
 
 type Repository interface {
 	Create(ctx context.Context, model *Model) error
+	GetByID(ctx context.Context, id id.ID) (*Model, bool, error)
 	GetByEmail(ctx context.Context, email string) (*Model, bool, error)
 }
 
@@ -35,6 +37,17 @@ func (r *repository) Create(ctx context.Context, model *Model) error {
 		return err
 	}
 	return nil
+}
+
+func (r *repository) GetByID(ctx context.Context, id id.ID) (*Model, bool, error) {
+	var model Model
+	if err := r.tx.Extract(ctx).NewSelect().Model(&model).Where("id = ?", id).Scan(ctx); err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, false, nil
+		}
+		return nil, false, err
+	}
+	return &model, true, nil
 }
 
 func (r *repository) GetByEmail(ctx context.Context, email string) (*Model, bool, error) {
