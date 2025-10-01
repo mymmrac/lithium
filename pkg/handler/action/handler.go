@@ -120,10 +120,10 @@ func (h *handler) createHandler(fCtx fiber.Ctx) error {
 		ProjectID id.ID    `uri:"projectID" validate:"required"`
 		Name      string   `json:"name"     validate:"alphanum_text,min=1,max=64"`
 		Path      string   `json:"path"     validate:"uri"`
-		Methods   []string `json:"methods"  validate:"gt=0,unique,dive,oneof=GET,POST,PUT,PATCH,DELETE"` //nolint:revive
+		Methods   []string `json:"methods"  validate:"gt=0,unique,dive,oneof=GET POST PUT PATCH DELETE"`
 	}
 
-	if err := fCtx.Bind().Body(&request); err != nil {
+	if err := fCtx.Bind().All(&request); err != nil {
 		logger.FromContext(fCtx).Warnw("create action, bad request", "error", err)
 		return fiber.NewError(fiber.StatusBadRequest)
 	}
@@ -164,7 +164,7 @@ func (h *handler) updateHandler(fCtx fiber.Ctx) error {
 		ID        id.ID    `uri:"actionID"  validate:"required"`
 		Name      string   `json:"name"     validate:"alphanum_text,min=1,max=64"`
 		Path      string   `json:"path"     validate:"uri"`
-		Methods   []string `json:"methods"  validate:"gt=0,unique,dive,oneof=GET,POST,PUT,PATCH,DELETE"` //nolint:revive
+		Methods   []string `json:"methods"  validate:"gt=0,unique,dive,oneof=GET POST PUT PATCH DELETE"`
 	}
 
 	if err := fCtx.Bind().All(&request); err != nil {
