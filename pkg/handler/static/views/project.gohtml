@@ -15,9 +15,9 @@
     <br><br>
 
     <div class="flex flex-row gap-4 items-center">
-        <div x-data="updateProjectForm(project)">
+        <div x-data="updateProjectForm()">
             <button @click="open = true"
-                    class="px-4 py-2 bg-green-400 rounded shadow hover:bg-green-600 hover:cursor-pointer transition">
+                    class="px-4 py-2 bg-amber-400 rounded shadow hover:bg-amber-600 hover:cursor-pointer transition">
                 Update Project
             </button>
 
@@ -138,7 +138,7 @@
                 <li class="mb-2">
                     <a :href="`/project/${ project.id }/action/${ action.id }`">
                         <button type="submit"
-                                class="px-4 py-2 bg-green-400 rounded hover:bg-green-600 hover:cursor-pointer transition">
+                                class="px-4 py-2 bg-blue-400 rounded hover:bg-blue-600 hover:cursor-pointer transition">
                             Configure
                         </button>
                     </a>

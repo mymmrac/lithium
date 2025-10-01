@@ -4,14 +4,88 @@
         <a :href="window.location.protocol + '//' + project.subDomain + '.' + window.location.host + action.path"
            target="_blank" x-text="project.subDomain + '.' + window.location.host + action.path"
            class="text-green-600 hover:cursor-pointer"></a>
+        <br>
+        <span x-text="action.methods.join(', ')"></span>
     </h2>
     <br>
 
     <a :href="`/project/${ project.id }`">
         <button type="button" class="px-4 py-2 bg-blue-400 rounded hover:bg-blue-600 hover:cursor-pointer transition">
-            Project
+            Project - <span x-text="project.name"></span>
         </button>
     </a>
+
+    <br><br>
+
+    <div class="flex flex-row gap-4 items-center">
+        <div x-data="updateActionForm()">
+            <button @click="open = true"
+                    class="px-4 py-2 bg-amber-400 rounded shadow hover:bg-amber-600 hover:cursor-pointer transition">
+                Update Action
+            </button>
+
+            <div x-show="open" x-transition.opacity @click.self="open = false" style="display: none;"
+                 class="fixed inset-0 bg-black/50 flex items-center justify-center z-40">
+                <div x-show="open" x-transition @keydown.escape.window="open = false"
+                     class="bg-white rounded-xl shadow-xl max-w-md w-full p-6 relative z-50">
+                    <form @submit.prevent="await update(); await loadAction()">
+                        <div class="flex justify-between items-center border-b pb-3">
+                            <h2 class="text-xl font-semibold">Update Project</h2>
+                            <button @click="open = false" type="button" class="text-gray-500 hover:text-gray-700">
+                                ✕
+                            </button>
+                        </div>
+
+                        <div class="mt-4 flex flex-col gap-2">
+                            <div class="flex flex-col gap-2">
+                                <label for="update-action-name">Name</label>
+                                <input x-model="name" type="text" id="update-action-name" placeholder="Name"
+                                       class="border rounded p-2">
+                            </div>
+
+                            <div class="flex flex-col gap-2">
+                                <label for="update-action-path">Path</label>
+                                <input x-model="path" type="text" id="update-action-path" placeholder="Path"
+                                       class="border rounded p-2">
+                            </div>
+
+                            <div class="flex flex-col gap-2">
+                                <label for="update-action-methods">Methods</label>
+                                <select multiple x-model="methods" id="update-action-methods" class="border rounded p-2">
+                                    <option disabled>Choose methods</option>
+                                    <option value="GET">GET</option>
+                                    <option value="POST">POST</option>
+                                    <option value="PUT">PUT</option>
+                                    <option value="PATCH">PATCH</option>
+                                    <option value="DELETE">DELETE</option>
+                                </select>
+                            </div>
+
+                            <p x-show="error" x-text="error" class="text-red-500 text-sm mt-2"></p>
+                        </div>
+
+                        <div class="mt-6 flex justify-around gap-2">
+                            <button @click="open = false" type="button"
+                                    class="px-4 py-2 bg-gray-200 rounded hover:bg-gray-300 hover:cursor-pointer transition">
+                                Cancel
+                            </button>
+                            <button type="submit"
+                                    class="px-4 py-2 bg-green-400 rounded hover:bg-green-600 hover:cursor-pointer transition">
+                                Update
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <div>or</div>
+
+        <button type="button" class="px-4 py-2 bg-red-400 rounded hover:bg-red-600 hover:cursor-pointer transition"
+                x-data="deleteActionForm()" @click="await deleteProject()">
+            Delete Action
+        </button>
+    </div>
 </main>
 
 <script>
@@ -29,4 +103,72 @@
             },
         }
     }
+
+    function updateActionForm() {
+        return {
+            open: false,
+            projectId: "",
+            actionId: "",
+            name: "",
+            path: "",
+            methods: [],
+            error: "",
+
+            init() {
+                this.$watch("project", value => {
+                    this.projectId = value.id
+                })
+                this.$watch("action", value => {
+                    if (this.error !== "") {
+                        return
+                    }
+                    this.actionId = value.id
+                    this.name = value.name
+                    this.path = value.path
+                    this.methods = value.methods
+                })
+            },
+
+            async update() {
+                this.error = ""
+
+                if (this.name === "") {
+                    this.error = "Empty name"
+                    return
+                }
+
+                if (this.path === "") {
+                    this.error = "Empty path"
+                    return
+                }
+
+                if (this.methods.length === 0) {
+                    this.error = "At least one method should be selected"
+                    return
+                }
+
+                try {
+                    let res = await fetch(`/api/project/${ this.projectId }/action/${ this.actionId }`, {
+                        method: "PUT",
+                        headers: {"Content-Type": "application/json"},
+                        body: JSON.stringify({
+                            name: this.name,
+                            path: this.path,
+                            methods: this.methods,
+                        }),
+                    })
+
+                    if (!res.ok) {
+                        let msg = await res.text()
+                        throw new Error(msg || "Update failed")
+                    }
+
+                    this.open = false
+                } catch (err) {
+                    this.error = err.message
+                }
+            },
+        }
+    }
+
 </script>

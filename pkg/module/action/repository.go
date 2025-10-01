@@ -5,6 +5,8 @@ import (
 	"database/sql"
 	"errors"
 
+	"github.com/uptrace/bun/dialect/pgdialect"
+
 	"github.com/mymmrac/lithium/pkg/module/db"
 	"github.com/mymmrac/lithium/pkg/module/id"
 )
@@ -40,7 +42,7 @@ func (r *repository) UpdateInfo(ctx context.Context, id id.ID, name, path string
 		Model(&Model{}).
 		Set("name = ?", name).
 		Set("path = ?", path).
-		Set("methods = ?", methods).
+		Set("methods = ?", pgdialect.Array(methods)).
 		Where("id = ?", id).
 		Exec(ctx)
 	if err != nil {

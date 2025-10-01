@@ -172,7 +172,7 @@ func (h *handler) updateHandler(fCtx fiber.Ctx) error {
 		return fiber.NewError(fiber.StatusBadRequest)
 	}
 
-	projectModel, found, err := h.projectRepository.GetByID(fCtx, request.ID)
+	projectModel, found, err := h.projectRepository.GetByID(fCtx, request.ProjectID)
 	if err != nil {
 		logger.FromContext(fCtx).Errorw("get project", "error", err)
 		return fiber.NewError(fiber.StatusInternalServerError)
