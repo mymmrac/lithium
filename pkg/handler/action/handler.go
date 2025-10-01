@@ -103,7 +103,7 @@ func (h *handler) getHandler(fCtx fiber.Ctx) error {
 		logger.FromContext(fCtx).Errorw("get action", "error", err)
 		return fiber.NewError(fiber.StatusInternalServerError)
 	}
-	if !found {
+	if !found || model.ProjectID != request.ProjectID {
 		return fiber.NewError(fiber.StatusNotFound)
 	}
 
@@ -181,6 +181,15 @@ func (h *handler) updateHandler(fCtx fiber.Ctx) error {
 		return fiber.NewError(fiber.StatusNotFound)
 	}
 
+	model, found, err := h.actionRepository.GetByID(fCtx, request.ID)
+	if err != nil {
+		logger.FromContext(fCtx).Errorw("get action", "error", err)
+		return fiber.NewError(fiber.StatusInternalServerError)
+	}
+	if !found || model.ProjectID != request.ProjectID {
+		return fiber.NewError(fiber.StatusNotFound)
+	}
+
 	request.Name = strings.TrimSpace(request.Name)
 
 	err = h.actionRepository.UpdateInfo(fCtx, request.ID, request.Name, request.Path, request.Methods)
@@ -194,20 +203,30 @@ func (h *handler) updateHandler(fCtx fiber.Ctx) error {
 
 func (h *handler) deleteHandler(fCtx fiber.Ctx) error {
 	var request struct {
-		ID id.ID `uri:"actionID" validate:"required"`
+		ProjectID id.ID `uri:"projectID" validate:"required"`
+		ID        id.ID `uri:"actionID"  validate:"required"`
 	}
 
 	if err := fCtx.Bind().URI(&request); err != nil {
-		logger.FromContext(fCtx).Warnw("delete project, bad request", "error", err)
+		logger.FromContext(fCtx).Warnw("delete action, bad request", "error", err)
 		return fiber.NewError(fiber.StatusBadRequest)
 	}
 
-	projectModel, found, err := h.projectRepository.GetByID(fCtx, request.ID)
+	projectModel, found, err := h.projectRepository.GetByID(fCtx, request.ProjectID)
 	if err != nil {
 		logger.FromContext(fCtx).Errorw("get project", "error", err)
 		return fiber.NewError(fiber.StatusInternalServerError)
 	}
 	if !found || projectModel.OwnerID != auth.MustUserFromContext(fCtx).ID {
+		return fiber.NewError(fiber.StatusNotFound)
+	}
+
+	model, found, err := h.actionRepository.GetByID(fCtx, request.ID)
+	if err != nil {
+		logger.FromContext(fCtx).Errorw("get action", "error", err)
+		return fiber.NewError(fiber.StatusInternalServerError)
+	}
+	if !found || model.ProjectID != request.ProjectID {
 		return fiber.NewError(fiber.StatusNotFound)
 	}
 
