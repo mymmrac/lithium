@@ -14,65 +14,85 @@
 
     <br><br>
 
-    <div x-data="updateProjectForm(project)">
-        <button @click="open = true"
-                class="px-4 py-2 bg-green-400 rounded shadow hover:bg-green-600 hover:cursor-pointer transition">
-            Update Project
-        </button>
+    <div class="flex flex-row gap-4 items-center">
+        <div x-data="updateProjectForm(project)">
+            <button @click="open = true"
+                    class="px-4 py-2 bg-green-400 rounded shadow hover:bg-green-600 hover:cursor-pointer transition">
+                Update Project
+            </button>
 
-        <div x-show="open" x-transition.opacity @click.self="open = false" style="display: none;"
-             class="fixed inset-0 bg-black/50 flex items-center justify-center z-40">
-            <div x-show="open" x-transition @keydown.escape.window="open = false"
-                 class="bg-white rounded-xl shadow-xl max-w-md w-full p-6 relative z-50">
-                <form @submit.prevent="await update(); await loadProject()">
-                    <div class="flex justify-between items-center border-b pb-3">
-                        <h2 class="text-xl font-semibold">Update Project</h2>
-                        <button @click="open = false" type="button" class="text-gray-500 hover:text-gray-700">
-                            ✕
-                        </button>
-                    </div>
-
-                    <div class="mt-4 flex flex-col gap-2">
-                        <div class="flex flex-col gap-2">
-                            <label for="create-project-name">Name</label>
-                            <input x-model="name" type="text" id="create-project-name" placeholder="Name"
-                                   class="border rounded p-2">
+            <div x-show="open" x-transition.opacity @click.self="open = false" style="display: none;"
+                 class="fixed inset-0 bg-black/50 flex items-center justify-center z-40">
+                <div x-show="open" x-transition @keydown.escape.window="open = false"
+                     class="bg-white rounded-xl shadow-xl max-w-md w-full p-6 relative z-50">
+                    <form @submit.prevent="await update(); await loadProject()">
+                        <div class="flex justify-between items-center border-b pb-3">
+                            <h2 class="text-xl font-semibold">Update Project</h2>
+                            <button @click="open = false" type="button" class="text-gray-500 hover:text-gray-700">
+                                ✕
+                            </button>
                         </div>
 
-                        <p x-show="error" x-text="error" class="text-red-500 text-sm mt-2"></p>
-                    </div>
+                        <div class="mt-4 flex flex-col gap-2">
+                            <div class="flex flex-col gap-2">
+                                <label for="create-project-name">Name</label>
+                                <input x-model="name" type="text" id="create-project-name" placeholder="Name"
+                                       class="border rounded p-2">
+                            </div>
 
-                    <div class="mt-6 flex justify-around gap-2">
-                        <button @click="open = false" type="button"
-                                class="px-4 py-2 bg-gray-200 rounded hover:bg-gray-300 hover:cursor-pointer transition">
-                            Cancel
-                        </button>
-                        <button type="submit"
-                                class="px-4 py-2 bg-green-400 rounded hover:bg-green-600 hover:cursor-pointer transition">
-                            Update
-                        </button>
-                    </div>
-                </form>
+                            <p x-show="error" x-text="error" class="text-red-500 text-sm mt-2"></p>
+                        </div>
+
+                        <div class="mt-6 flex justify-around gap-2">
+                            <button @click="open = false" type="button"
+                                    class="px-4 py-2 bg-gray-200 rounded hover:bg-gray-300 hover:cursor-pointer transition">
+                                Cancel
+                            </button>
+                            <button type="submit"
+                                    class="px-4 py-2 bg-green-400 rounded hover:bg-green-600 hover:cursor-pointer transition">
+                                Update
+                            </button>
+                        </div>
+                    </form>
+                </div>
             </div>
         </div>
+
+        <div>or</div>
+
+        <button type="button" class="px-4 py-2 bg-red-400 rounded hover:bg-red-600 hover:cursor-pointer transition"
+                x-data="deleteProjectForm()" @click="await deleteProject()">
+            Delete Project
+        </button>
     </div>
 
-    <br>
-
-    <button type="button" class="px-4 py-2 bg-red-400 rounded hover:bg-red-600 hover:cursor-pointer transition"
-            x-data="deleteProjectForm()" @click="await deleteProject()">
-        Delete Project
-    </button>
+    <div x-init="await loadActions()">
+        <h2 class="text-xl">Actions</h2>
+        <ul>
+            <template x-for="action in actions">
+                <li>
+                    <span x-text="action.name"></span> - <span x-text="action.methods.join(', ')"></span>
+                    <span x-text="action.path"></span>
+                </li>
+            </template>
+        </ul>
+    </div>
 </main>
 
 <script>
     function projectComponent() {
         return {
             projectId: "{{ .ProjectId }}",
+
             project: {},
+            actions: [],
 
             async loadProject() {
                 this.project = await (await fetch(`/api/project/${ this.projectId }`)).json()
+            },
+
+            async loadActions() {
+                this.actions = await (await fetch(`/api/project/${ this.projectId }/action`)).json()
             },
         }
     }

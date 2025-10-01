@@ -45,6 +45,11 @@ func (h *handler) getAllHandler(fCtx fiber.Ctx) error {
 		ProjectID id.ID `uri:"projectID" validate:"required"`
 	}
 
+	if err := fCtx.Bind().URI(&request); err != nil {
+		logger.FromContext(fCtx).Warnw("get actions, bad request", "error", err)
+		return fiber.NewError(fiber.StatusBadRequest)
+	}
+
 	projectModel, found, err := h.projectRepository.GetByID(fCtx, request.ProjectID)
 	if err != nil {
 		logger.FromContext(fCtx).Errorw("get project", "error", err)
