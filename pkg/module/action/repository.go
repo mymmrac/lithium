@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"errors"
+	"fmt"
 
 	"github.com/uptrace/bun/dialect/pgdialect"
 
@@ -59,7 +60,7 @@ func (r *repository) GetByProjectID(ctx context.Context, projectID id.ID) ([]Mod
 		NewSelect().
 		Model(&models).
 		Where("project_id = ?", projectID).
-		Order("order DESC").
+		Order("order ASC").
 		Scan(ctx)
 	if err != nil {
 		return nil, err
@@ -100,29 +101,27 @@ func (r *repository) CountByProjectID(ctx context.Context, projectID id.ID) (int
 }
 
 func (r *repository) UpdateOrder(ctx context.Context, ids []id.ID) error {
-	tx := r.tx.Extract(ctx)
-
-	type order struct {
-		ID    id.ID `bun:"id"`
-		Index int   `bun:"index"`
+	ctx, err := r.tx.Begin(ctx)
+	if err != nil {
+		return fmt.Errorf("begin transaction: %w", err)
 	}
+	defer func() { _ = r.tx.Rollback(ctx) }()
 
-	orders := make([]order, len(ids))
-	for i, modelID := range ids {
-		orders[i] = order{
-			ID:    modelID,
-			Index: i,
+	for i, actionID := range ids {
+		_, err = r.tx.Extract(ctx).
+			NewUpdate().
+			Model((*Model)(nil)).
+			Set("\"order\" = ?", i).
+			Where("id = ?", actionID).
+			Exec(ctx)
+		if err != nil {
+			return err
 		}
 	}
 
-	_, err := tx.
-		NewUpdate().
-		Model((*Model)(nil)).
-		With("_data", tx.NewValues(&orders)).
-		TableExpr("_data").
-		Set("order = _data.index").
-		Where("id = _data.id").
-		Exec(ctx)
+	if err = r.tx.Commit(ctx); err != nil {
+		return fmt.Errorf("commit transaction: %w", err)
+	}
 
-	return err
+	return nil
 }

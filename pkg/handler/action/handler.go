@@ -29,7 +29,7 @@ func RegisterHandlers(router fiber.Router, actionRepository action.Repository, p
 
 	api.Get("/", h.getAllHandler)
 	api.Post("/", h.createHandler)
-	api.Put("/order", h.updateActionOrderHandler)
+	api.Post("/order", h.updateActionOrderHandler)
 	api.Get("/:actionID", h.getHandler)
 	api.Put("/:actionID", h.updateHandler)
 	api.Delete("/:actionID", h.deleteHandler)

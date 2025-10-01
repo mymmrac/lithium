@@ -134,14 +134,20 @@
     <div x-init="await loadActions()">
         <h2 class="text-xl">Actions</h2>
         <ul>
-            <template x-for="action in actions">
-                <li class="mb-2">
+            <template x-for="(action, index) in actions" :key="action.id">
+                <li class="mb-2" @dragover.prevent @drop="drop(index)">
+                    <button type="button" draggable="true" @dragstart="dragStart(index)"
+                            class="px-3 py-2 bg-gray-400 rounded cursor-move" title="Drag">
+                        ☰
+                    </button>
+
                     <a :href="`/project/${ project.id }/action/${ action.id }`">
                         <button type="submit"
                                 class="px-4 py-2 bg-blue-400 rounded hover:bg-blue-600 hover:cursor-pointer transition">
                             Configure
                         </button>
                     </a>
+
                     <span x-text="action.name"></span> - <span x-text="action.methods.join(', ')"></span>
                     <span x-text="action.path"></span>
                 </li>
@@ -158,12 +164,37 @@
             project: {},
             actions: [],
 
+            dragIndex: null,
+
             async loadProject() {
                 this.project = await (await fetch(`/api/project/${ this.projectId }`)).json()
             },
 
             async loadActions() {
                 this.actions = await (await fetch(`/api/project/${ this.projectId }/action`)).json()
+            },
+
+            dragStart(index) {
+                this.dragIndex = index
+            },
+
+            async drop(index) {
+                if (this.dragIndex === null || this.dragIndex === index) {
+                    return
+                }
+
+                const moved = this.actions.splice(this.dragIndex, 1)[0]
+                this.actions.splice(index, 0, moved)
+
+                this.dragIndex = null
+
+                await fetch(`/api/project/${ this.projectId }/action/order`, {
+                    method: "POST",
+                    headers: {"Content-Type": "application/json"},
+                    body: JSON.stringify({
+                        ids: this.actions.map(a => a.id),
+                    }),
+                })
             },
         }
     }

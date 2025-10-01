@@ -5,7 +5,7 @@
            target="_blank" x-text="project.subDomain + '.' + window.location.host + action.path"
            class="text-green-600 hover:cursor-pointer"></a>
         <br>
-        <span x-text="action.methods.join(', ')"></span>
+        <span x-text="action.methods ? action.methods.join(', ') : ''"></span>
     </h2>
     <br>
 
