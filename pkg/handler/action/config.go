@@ -1,4 +1,4 @@
-package storage
+package action
 
 import (
 	"github.com/go-playground/validator/v10"
@@ -8,19 +8,13 @@ import (
 )
 
 type Config struct {
-	Endpoint string `validate:"hostname_port"`
-	Secure   bool   `validate:"-"`
-	ID       string `validate:"required"`
-	Secret   string `validate:"required"`
+	ModuleBucket string `validate:"required"`
 }
 
 func init() { //nolint:gochecknoinits
 	di.Base().MustProvide(func(v *viper.Viper, va *validator.Validate) (Config, error) {
 		cfg := Config{
-			Endpoint: v.GetString("minio-endpoint"),
-			Secure:   v.GetBool("minio-secure"),
-			ID:       v.GetString("minio-id"),
-			Secret:   v.GetString("minio-secret"),
+			ModuleBucket: v.GetString("module-bucket"),
 		}
 		if err := va.Struct(cfg); err != nil {
 			return Config{}, err

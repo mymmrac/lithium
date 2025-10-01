@@ -1,6 +1,7 @@
 package action
 
 import (
+	"path"
 	"slices"
 	"strings"
 	"time"
@@ -9,20 +10,31 @@ import (
 
 	"github.com/mymmrac/lithium/pkg/module/action"
 	"github.com/mymmrac/lithium/pkg/module/auth"
+	"github.com/mymmrac/lithium/pkg/module/db"
 	"github.com/mymmrac/lithium/pkg/module/id"
 	"github.com/mymmrac/lithium/pkg/module/logger"
 	"github.com/mymmrac/lithium/pkg/module/project"
+	"github.com/mymmrac/lithium/pkg/module/storage"
 )
 
 type handler struct {
+	cfg               Config
+	tx                db.Transaction
 	actionRepository  action.Repository
 	projectRepository project.Repository
+	storage           storage.Storage
 }
 
-func RegisterHandlers(router fiber.Router, actionRepository action.Repository, projectRepository project.Repository) {
+func RegisterHandlers(
+	cfg Config, router fiber.Router, tx db.Transaction, actionRepository action.Repository,
+	projectRepository project.Repository, storage storage.Storage,
+) {
 	h := &handler{
+		cfg:               cfg,
+		tx:                tx,
 		actionRepository:  actionRepository,
 		projectRepository: projectRepository,
+		storage:           storage,
 	}
 
 	api := router.Group("/api/project/:projectID/action", auth.RequireMiddleware)
@@ -32,6 +44,7 @@ func RegisterHandlers(router fiber.Router, actionRepository action.Repository, p
 	api.Post("/order", h.updateActionOrderHandler)
 	api.Get("/:actionID", h.getHandler)
 	api.Put("/:actionID", h.updateHandler)
+	api.Post("/:actionID/upload", h.uploadHandler)
 	api.Delete("/:actionID", h.deleteHandler)
 }
 
@@ -177,7 +190,7 @@ func (h *handler) updateHandler(fCtx fiber.Ctx) error {
 	}
 
 	if err := fCtx.Bind().All(&request); err != nil {
-		logger.FromContext(fCtx).Warnw("update project, bad request", "error", err)
+		logger.FromContext(fCtx).Warnw("update action, bad request", "error", err)
 		return fiber.NewError(fiber.StatusBadRequest)
 	}
 
@@ -204,6 +217,55 @@ func (h *handler) updateHandler(fCtx fiber.Ctx) error {
 	err = h.actionRepository.UpdateInfo(fCtx, request.ID, request.Name, request.Path, request.Methods)
 	if err != nil {
 		logger.FromContext(fCtx).Errorw("update action", "error", err)
+		return fiber.NewError(fiber.StatusInternalServerError)
+	}
+
+	return fCtx.JSON(fiber.Map{"ok": true})
+}
+
+func (h *handler) uploadHandler(fCtx fiber.Ctx) error {
+	var request struct {
+		ProjectID id.ID  `uri:"projectID" validate:"required"`
+		ID        id.ID  `uri:"actionID"  validate:"required"`
+		Module    []byte `form:"module"   validate:"required"`
+	}
+
+	if err := fCtx.Bind().All(&request); err != nil {
+		logger.FromContext(fCtx).Warnw("upload action, bad request", "error", err)
+		return fiber.NewError(fiber.StatusBadRequest)
+	}
+
+	projectModel, found, err := h.projectRepository.GetByID(fCtx, request.ProjectID)
+	if err != nil {
+		logger.FromContext(fCtx).Errorw("get project", "error", err)
+		return fiber.NewError(fiber.StatusInternalServerError)
+	}
+	if !found || projectModel.OwnerID != auth.MustUserFromContext(fCtx).ID {
+		return fiber.NewError(fiber.StatusNotFound)
+	}
+
+	// TODO: Add module validation (compilation)?
+
+	ctx, err := h.tx.Begin(fCtx)
+	if err != nil {
+		logger.FromContext(fCtx).Errorw("begin transaction", "error", err)
+		return fiber.NewError(fiber.StatusInternalServerError)
+	}
+	defer func() { _ = h.tx.Rollback(ctx) }()
+
+	modulePath := path.Join(auth.MustUserFromContext(fCtx).ID.String(), request.ProjectID.String(), request.ID.String())
+	if err = h.actionRepository.UpdateModulePath(ctx, request.ID, modulePath); err != nil {
+		logger.FromContext(fCtx).Errorw("update action module path", "error", err)
+		return fiber.NewError(fiber.StatusInternalServerError)
+	}
+
+	if err = h.storage.Upload(ctx, h.cfg.ModuleBucket, modulePath, request.Module); err != nil {
+		logger.FromContext(fCtx).Errorw("upload action module", "error", err)
+		return fiber.NewError(fiber.StatusInternalServerError)
+	}
+
+	if err = h.tx.Commit(ctx); err != nil {
+		logger.FromContext(fCtx).Errorw("commit transaction", "error", err)
 		return fiber.NewError(fiber.StatusInternalServerError)
 	}
 

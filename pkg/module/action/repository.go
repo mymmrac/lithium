@@ -20,6 +20,7 @@ type Repository interface {
 	DeleteByID(ctx context.Context, id id.ID) error
 	CountByProjectID(ctx context.Context, projectID id.ID) (int, error)
 	UpdateOrder(ctx context.Context, ids []id.ID) error
+	UpdateModulePath(ctx context.Context, id id.ID, modulePath string) error
 }
 
 type repository struct {
@@ -123,5 +124,17 @@ func (r *repository) UpdateOrder(ctx context.Context, ids []id.ID) error {
 		return fmt.Errorf("commit transaction: %w", err)
 	}
 
+	return nil
+}
+
+func (r *repository) UpdateModulePath(ctx context.Context, id id.ID, modulePath string) error {
+	_, err := r.tx.Extract(ctx).NewUpdate().
+		Model((*Model)(nil)).
+		Set("module_path = ?", modulePath).
+		Where("id = ?", id).
+		Exec(ctx)
+	if err != nil {
+		return err
+	}
 	return nil
 }
