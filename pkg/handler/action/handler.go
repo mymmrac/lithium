@@ -80,8 +80,8 @@ func (h *handler) getAllHandler(fCtx fiber.Ctx) error {
 
 func (h *handler) getHandler(fCtx fiber.Ctx) error {
 	var request struct {
-		ID        id.ID `uri:"actionID"  validate:"required"`
 		ProjectID id.ID `uri:"projectID" validate:"required"`
+		ID        id.ID `uri:"actionID"  validate:"required"`
 	}
 
 	if err := fCtx.Bind().URI(&request); err != nil {
@@ -89,7 +89,7 @@ func (h *handler) getHandler(fCtx fiber.Ctx) error {
 		return fiber.NewError(fiber.StatusBadRequest)
 	}
 
-	projectModel, found, err := h.projectRepository.GetByID(fCtx, request.ID)
+	projectModel, found, err := h.projectRepository.GetByID(fCtx, request.ProjectID)
 	if err != nil {
 		logger.FromContext(fCtx).Errorw("get project", "error", err)
 		return fiber.NewError(fiber.StatusInternalServerError)

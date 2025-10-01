@@ -50,6 +50,13 @@ func RegisterHandlers(router fiber.Router) error {
 		}, "layouts/main")
 	})
 
+	router.Get("/project/:projectID/action/:actionID", auth.RequireMiddleware, func(fCtx fiber.Ctx) error {
+		return fCtx.Render("action", fiber.Map{
+			"ProjectId": fCtx.Params("projectID"),
+			"ActionId":  fCtx.Params("actionID"),
+		}, "layouts/main")
+	})
+
 	publicDirFR, err := fs.Sub(publicFS, "public")
 	if err != nil {
 		return fmt.Errorf("load public filesystem: %w", err)

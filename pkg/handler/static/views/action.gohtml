@@ -1,0 +1,32 @@
+<main x-data="actionComponent()" x-init="await loadAction()">
+    <h1 class="text-3xl">Action <span x-text="action.name" class="text-green-600"></span></h1>
+    <h2 class="text-xl">
+        <a :href="window.location.protocol + '//' + project.subDomain + '.' + window.location.host + action.path"
+           target="_blank" x-text="project.subDomain + '.' + window.location.host + action.path"
+           class="text-green-600 hover:cursor-pointer"></a>
+    </h2>
+    <br>
+
+    <a :href="`/project/${ project.id }`">
+        <button type="button" class="px-4 py-2 bg-blue-400 rounded hover:bg-blue-600 hover:cursor-pointer transition">
+            Project
+        </button>
+    </a>
+</main>
+
+<script>
+    function actionComponent() {
+        return {
+            projectId: "{{ .ProjectId }}",
+            actionId: "{{ .ActionId }}",
+
+            project: {},
+            action: {},
+
+            async loadAction() {
+                this.project = await (await fetch(`/api/project/${ this.projectId }`)).json()
+                this.action = await (await fetch(`/api/project/${ this.projectId }/action/${ this.actionId }`)).json()
+            },
+        }
+    }
+</script>

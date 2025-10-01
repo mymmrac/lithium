@@ -2,7 +2,7 @@
     <h1 class="text-3xl">Project <span x-text="project.name" class="text-green-600"></span></h1>
     <h2 class="text-xl">
         <a :href="window.location.protocol + '//' + project.subDomain + '.' + window.location.host" target="_blank"
-           x-text="project.subDomain + '.' + window.location.hostname" class="text-green-600 hover:cursor-pointer"></a>
+           x-text="project.subDomain + '.' + window.location.host" class="text-green-600 hover:cursor-pointer"></a>
     </h2>
     <br>
 
@@ -135,7 +135,13 @@
         <h2 class="text-xl">Actions</h2>
         <ul>
             <template x-for="action in actions">
-                <li>
+                <li class="mb-2">
+                    <a :href="`/project/${ project.id }/action/${ action.id }`">
+                        <button type="submit"
+                                class="px-4 py-2 bg-green-400 rounded hover:bg-green-600 hover:cursor-pointer transition">
+                            Configure
+                        </button>
+                    </a>
                     <span x-text="action.name"></span> - <span x-text="action.methods.join(', ')"></span>
                     <span x-text="action.path"></span>
                 </li>
