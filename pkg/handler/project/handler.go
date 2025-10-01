@@ -38,14 +38,14 @@ type projectInfo struct {
 }
 
 func (h *handler) getAllHandler(fCtx fiber.Ctx) error {
-	projects, err := h.projectRepository.GetByOwnerID(fCtx, auth.MustUserFromContext(fCtx).ID)
+	models, err := h.projectRepository.GetByOwnerID(fCtx, auth.MustUserFromContext(fCtx).ID)
 	if err != nil {
 		logger.FromContext(fCtx).Errorw("get projects", "error", err)
 		return fiber.NewError(fiber.StatusInternalServerError)
 	}
 
-	response := make([]projectInfo, len(projects))
-	for i, model := range projects {
+	response := make([]projectInfo, len(models))
+	for i, model := range models {
 		response[i] = projectInfo{
 			ID:        model.ID,
 			Name:      model.Name,
@@ -66,7 +66,7 @@ func (h *handler) getHandler(fCtx fiber.Ctx) error {
 		return fiber.NewError(fiber.StatusBadRequest)
 	}
 
-	projectModel, found, err := h.projectRepository.GetByID(fCtx, request.ID, auth.MustUserFromContext(fCtx).ID)
+	model, found, err := h.projectRepository.GetByID(fCtx, auth.MustUserFromContext(fCtx).ID, request.ID)
 	if err != nil {
 		logger.FromContext(fCtx).Errorw("get project", "error", err)
 		return fiber.NewError(fiber.StatusInternalServerError)
@@ -76,9 +76,9 @@ func (h *handler) getHandler(fCtx fiber.Ctx) error {
 	}
 
 	return fCtx.JSON(&projectInfo{
-		ID:        projectModel.ID,
-		Name:      projectModel.Name,
-		SubDomain: projectModel.SubDomain,
+		ID:        model.ID,
+		Name:      model.Name,
+		SubDomain: model.SubDomain,
 	})
 }
 
@@ -124,7 +124,7 @@ func (h *handler) updateHandler(fCtx fiber.Ctx) error {
 		return fiber.NewError(fiber.StatusBadRequest)
 	}
 
-	err := h.projectRepository.UpdateName(fCtx, request.ID, auth.MustUserFromContext(fCtx).ID, request.Name)
+	err := h.projectRepository.UpdateName(fCtx, auth.MustUserFromContext(fCtx).ID, request.ID, request.Name)
 	if err != nil {
 		logger.FromContext(fCtx).Errorw("update project", "error", err)
 		return fiber.NewError(fiber.StatusInternalServerError)
@@ -145,7 +145,7 @@ func (h *handler) deleteHandler(fCtx fiber.Ctx) error {
 
 	// TODO: Remove all actions (and modules)
 
-	err := h.projectRepository.DeleteByID(fCtx, request.ID, auth.MustUserFromContext(fCtx).ID)
+	err := h.projectRepository.DeleteByID(fCtx, auth.MustUserFromContext(fCtx).ID, request.ID)
 	if err != nil {
 		logger.FromContext(fCtx).Errorw("delete project", "error", err)
 		return fiber.NewError(fiber.StatusInternalServerError)

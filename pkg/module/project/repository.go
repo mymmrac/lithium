@@ -11,11 +11,11 @@ import (
 
 type Repository interface {
 	Create(ctx context.Context, model *Model) error
-	UpdateName(ctx context.Context, id, ownerID id.ID, name string) error
+	UpdateName(ctx context.Context, ownerID, id id.ID, name string) error
 	GetByOwnerID(ctx context.Context, ownerID id.ID) ([]Model, error)
-	GetByID(ctx context.Context, id, ownerID id.ID) (*Model, bool, error)
+	GetByID(ctx context.Context, ownerID, id id.ID) (*Model, bool, error)
 	GetBySubDomain(ctx context.Context, subDomain string) (*Model, bool, error)
-	DeleteByID(ctx context.Context, id, ownerID id.ID) error
+	DeleteByID(ctx context.Context, ownerID, id id.ID) error
 }
 
 type repository struct {
@@ -36,7 +36,7 @@ func (r *repository) Create(ctx context.Context, model *Model) error {
 	return nil
 }
 
-func (r *repository) UpdateName(ctx context.Context, id, ownerID id.ID, name string) error {
+func (r *repository) UpdateName(ctx context.Context, ownerID, id id.ID, name string) error {
 	_, err := r.tx.Extract(ctx).NewUpdate().
 		Model(&Model{}).
 		Set("name = ?", name).
@@ -62,7 +62,7 @@ func (r *repository) GetByOwnerID(ctx context.Context, ownerID id.ID) ([]Model, 
 	return models, nil
 }
 
-func (r *repository) GetByID(ctx context.Context, id, ownerID id.ID) (*Model, bool, error) {
+func (r *repository) GetByID(ctx context.Context, ownerID, id id.ID) (*Model, bool, error) {
 	var model Model
 	err := r.tx.Extract(ctx).NewSelect().
 		Model(&model).
@@ -93,7 +93,7 @@ func (r *repository) GetBySubDomain(ctx context.Context, subDomain string) (*Mod
 	return &model, true, nil
 }
 
-func (r *repository) DeleteByID(ctx context.Context, id, ownerID id.ID) error {
+func (r *repository) DeleteByID(ctx context.Context, ownerID, id id.ID) error {
 	var model Model
 	_, err := r.tx.Extract(ctx).NewDelete().
 		Model(&model).
