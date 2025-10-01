@@ -11,7 +11,7 @@ import (
 
 type Repository interface {
 	Create(ctx context.Context, model *Model) error
-	GetByProjectID(ctx context.Context, ownerID id.ID) ([]Model, error)
+	GetByProjectID(ctx context.Context, projectID id.ID) ([]Model, error)
 	GetByID(ctx context.Context, id id.ID) (*Model, bool, error)
 }
 
@@ -33,9 +33,9 @@ func (r *repository) Create(ctx context.Context, model *Model) error {
 	return nil
 }
 
-func (r *repository) GetByProjectID(ctx context.Context, ownerID id.ID) ([]Model, error) {
+func (r *repository) GetByProjectID(ctx context.Context, projectID id.ID) ([]Model, error) {
 	var models []Model
-	_, err := r.tx.Extract(ctx).NewSelect().Model(&models).Where("project_id = ?", ownerID).Exec(ctx)
+	err := r.tx.Extract(ctx).NewSelect().Model(&models).Where("project_id = ?", projectID).Scan(ctx)
 	if err != nil {
 		return nil, err
 	}

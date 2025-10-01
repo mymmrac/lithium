@@ -14,7 +14,8 @@ type Model struct {
 	ID         id.ID     `bun:"id,pk"`
 	ProjectID  id.ID     `bun:"project_id"`
 	Name       string    `bun:"name"`
-	URL        string    `bun:"url"`
+	Path       string    `bun:"path"`
+	Methods    []string  `bun:"methods,array"`
 	ModulePath string    `bun:"module_path"`
 	CreatedAt  time.Time `bun:"created_at"`
 	UpdatedAt  time.Time `bun:"updated_at"`

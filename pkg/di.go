@@ -8,6 +8,7 @@ import (
 	"github.com/rathil/rdi"
 	"github.com/spf13/viper"
 
+	"github.com/mymmrac/lithium/pkg/handler/invoker"
 	"github.com/mymmrac/lithium/pkg/handler/static"
 	"github.com/mymmrac/lithium/pkg/module/action"
 	"github.com/mymmrac/lithium/pkg/module/auth"
@@ -20,17 +21,19 @@ import (
 
 func DI(ctx context.Context, v *viper.Viper) rdi.DI {
 	return di.New(ctx, v).
-		MustProvide(func(v *validator.Validate, views static.Views, auth auth.Auth) *fiber.App {
+		MustProvide(func(v *validator.Validate, views static.Views, auth auth.Auth, invoker invoker.Invoker) *fiber.App {
 			app := fiber.New(fiber.Config{
 				AppName:         version.Name(),
 				Views:           views,
 				StructValidator: &FiberValidatorAdapter{v: v},
 			})
+			app.Use(invoker.Middleware)
 			app.Use(auth.Middleware)
 			return app
 		}).
 		MustProvide(static.LoadViews).
 		MustProvide(auth.NewAuth).
+		MustProvide(invoker.NewInvoker).
 		MustProvide(storage.NewStorage).
 		MustProvide(user.NewRepository).
 		MustProvide(project.NewRepository).

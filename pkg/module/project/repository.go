@@ -14,6 +14,7 @@ type Repository interface {
 	UpdateName(ctx context.Context, id, ownerID id.ID, name string) error
 	GetByOwnerID(ctx context.Context, ownerID id.ID) ([]Model, error)
 	GetByID(ctx context.Context, id, ownerID id.ID) (*Model, bool, error)
+	GetBySubDomain(ctx context.Context, subDomain string) (*Model, bool, error)
 	DeleteByID(ctx context.Context, id, ownerID id.ID) error
 }
 
@@ -67,6 +68,21 @@ func (r *repository) GetByID(ctx context.Context, id, ownerID id.ID) (*Model, bo
 		Model(&model).
 		Where("id = ?", id).
 		Where("owner_id = ?", ownerID).
+		Scan(ctx)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, false, nil
+		}
+		return nil, false, err
+	}
+	return &model, true, nil
+}
+
+func (r *repository) GetBySubDomain(ctx context.Context, subDomain string) (*Model, bool, error) {
+	var model Model
+	err := r.tx.Extract(ctx).NewSelect().
+		Model(&model).
+		Where("sub_domain = ?", subDomain).
 		Scan(ctx)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
