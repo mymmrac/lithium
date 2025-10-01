@@ -1,6 +1,7 @@
 package action
 
 import (
+	"slices"
 	"strings"
 	"time"
 
@@ -28,6 +29,7 @@ func RegisterHandlers(router fiber.Router, actionRepository action.Repository, p
 
 	api.Get("/", h.getAllHandler)
 	api.Post("/", h.createHandler)
+	api.Put("/order", h.updateActionOrderHandler)
 	api.Get("/:actionID", h.getHandler)
 	api.Put("/:actionID", h.updateHandler)
 	api.Delete("/:actionID", h.deleteHandler)
@@ -202,6 +204,56 @@ func (h *handler) updateHandler(fCtx fiber.Ctx) error {
 	err = h.actionRepository.UpdateInfo(fCtx, request.ID, request.Name, request.Path, request.Methods)
 	if err != nil {
 		logger.FromContext(fCtx).Errorw("update action", "error", err)
+		return fiber.NewError(fiber.StatusInternalServerError)
+	}
+
+	return fCtx.JSON(fiber.Map{"ok": true})
+}
+
+func (h *handler) updateActionOrderHandler(fCtx fiber.Ctx) error {
+	var request struct {
+		ProjectID id.ID   `uri:"projectID" validate:"required"`
+		IDs       []id.ID `json:"ids"      validate:"gt=0,dive,required"`
+	}
+
+	if err := fCtx.Bind().All(&request); err != nil {
+		logger.FromContext(fCtx).Warnw("update action order, bad request", "error", err)
+		return fiber.NewError(fiber.StatusBadRequest)
+	}
+
+	projectModel, found, err := h.projectRepository.GetByID(fCtx, request.ProjectID)
+	if err != nil {
+		logger.FromContext(fCtx).Errorw("get project", "error", err)
+		return fiber.NewError(fiber.StatusInternalServerError)
+	}
+	if !found || projectModel.OwnerID != auth.MustUserFromContext(fCtx).ID {
+		return fiber.NewError(fiber.StatusNotFound)
+	}
+
+	models, err := h.actionRepository.GetByProjectID(fCtx, request.ProjectID)
+	if err != nil {
+		logger.FromContext(fCtx).Errorw("get actions", "error", err)
+		return fiber.NewError(fiber.StatusInternalServerError)
+	}
+
+	if len(models) != len(request.IDs) {
+		logger.FromContext(fCtx).Warnw("update action order, length doesn't match",
+			"expected", len(models), "actual", len(request.IDs),
+		)
+		return fiber.NewError(fiber.StatusBadRequest)
+	}
+	for _, modelID := range request.IDs {
+		if !slices.ContainsFunc(models, func(model action.Model) bool {
+			return model.ID == modelID
+		}) {
+			logger.FromContext(fCtx).Warnw("update action order, unexpected action", "id", modelID)
+			return fiber.NewError(fiber.StatusBadRequest)
+		}
+	}
+
+	err = h.actionRepository.UpdateOrder(fCtx, request.IDs)
+	if err != nil {
+		logger.FromContext(fCtx).Errorw("update action order", "error", err)
 		return fiber.NewError(fiber.StatusInternalServerError)
 	}
 

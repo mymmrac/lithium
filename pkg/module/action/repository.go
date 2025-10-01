@@ -18,6 +18,7 @@ type Repository interface {
 	GetByProjectID(ctx context.Context, projectID id.ID) ([]Model, error)
 	DeleteByID(ctx context.Context, id id.ID) error
 	CountByProjectID(ctx context.Context, projectID id.ID) (int, error)
+	UpdateOrder(ctx context.Context, ids []id.ID) error
 }
 
 type repository struct {
@@ -96,4 +97,32 @@ func (r *repository) CountByProjectID(ctx context.Context, projectID id.ID) (int
 		return 0, err
 	}
 	return count, nil
+}
+
+func (r *repository) UpdateOrder(ctx context.Context, ids []id.ID) error {
+	tx := r.tx.Extract(ctx)
+
+	type order struct {
+		ID    id.ID `bun:"id"`
+		Index int   `bun:"index"`
+	}
+
+	orders := make([]order, len(ids))
+	for i, modelID := range ids {
+		orders[i] = order{
+			ID:    modelID,
+			Index: i,
+		}
+	}
+
+	_, err := tx.
+		NewUpdate().
+		Model((*Model)(nil)).
+		With("_data", tx.NewValues(&orders)).
+		TableExpr("_data").
+		Set("order = _data.index").
+		Where("id = _data.id").
+		Exec(ctx)
+
+	return err
 }
