@@ -240,7 +240,8 @@ func (h *handler) uploadHandler(fCtx fiber.Ctx) error {
 		logger.FromContext(fCtx).Errorw("get project", "error", err)
 		return fiber.NewError(fiber.StatusInternalServerError)
 	}
-	if !found || projectModel.OwnerID != auth.MustUserFromContext(fCtx).ID {
+	userID := auth.MustUserFromContext(fCtx).ID
+	if !found || projectModel.OwnerID != userID {
 		return fiber.NewError(fiber.StatusNotFound)
 	}
 
@@ -253,7 +254,7 @@ func (h *handler) uploadHandler(fCtx fiber.Ctx) error {
 	}
 	defer func() { _ = h.tx.Rollback(ctx) }()
 
-	modulePath := path.Join(auth.MustUserFromContext(fCtx).ID.String(), request.ProjectID.String(), request.ID.String())
+	modulePath := path.Join(userID.String(), request.ProjectID.String(), request.ID.String()+".wasm")
 	if err = h.actionRepository.UpdateModulePath(ctx, request.ID, modulePath); err != nil {
 		logger.FromContext(fCtx).Errorw("update action module path", "error", err)
 		return fiber.NewError(fiber.StatusInternalServerError)
