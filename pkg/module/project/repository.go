@@ -38,7 +38,7 @@ func (r *repository) Create(ctx context.Context, model *Model) error {
 
 func (r *repository) UpdateName(ctx context.Context, id id.ID, name string) error {
 	_, err := r.tx.Extract(ctx).NewUpdate().
-		Model(&Model{}).
+		Model((*Model)(nil)).
 		Set("name = ?", name).
 		Where("id = ?", id).
 		Exec(ctx)

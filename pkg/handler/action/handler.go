@@ -137,6 +137,12 @@ func (h *handler) createHandler(fCtx fiber.Ctx) error {
 		return fiber.NewError(fiber.StatusNotFound)
 	}
 
+	count, err := h.actionRepository.CountByProjectID(fCtx, request.ProjectID)
+	if err != nil {
+		logger.FromContext(fCtx).Errorw("get actions count", "error", err)
+		return fiber.NewError(fiber.StatusInternalServerError)
+	}
+
 	request.Name = strings.TrimSpace(request.Name)
 
 	now := time.Now()
@@ -146,6 +152,7 @@ func (h *handler) createHandler(fCtx fiber.Ctx) error {
 		Name:       request.Name,
 		Path:       request.Path,
 		Methods:    request.Methods,
+		Order:      count,
 		ModulePath: "",
 		CreatedAt:  now,
 		UpdatedAt:  now,

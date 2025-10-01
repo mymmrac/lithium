@@ -5,6 +5,7 @@ CREATE TABLE action
     name        TEXT          NOT NULL,
     path        TEXT          NOT NULL,
     methods     VARCHAR(32)[] NOT NULL,
+    "order"     INT           NOT NULL,
     module_path TEXT          NOT NULL,
     created_at  TIMESTAMP(0)  NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at  TIMESTAMP(0)  NOT NULL DEFAULT CURRENT_TIMESTAMP

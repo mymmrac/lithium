@@ -17,6 +17,7 @@ type Repository interface {
 	GetByID(ctx context.Context, id id.ID) (*Model, bool, error)
 	GetByProjectID(ctx context.Context, projectID id.ID) ([]Model, error)
 	DeleteByID(ctx context.Context, id id.ID) error
+	CountByProjectID(ctx context.Context, projectID id.ID) (int, error)
 }
 
 type repository struct {
@@ -39,7 +40,7 @@ func (r *repository) Create(ctx context.Context, model *Model) error {
 
 func (r *repository) UpdateInfo(ctx context.Context, id id.ID, name, path string, methods []string) error {
 	_, err := r.tx.Extract(ctx).NewUpdate().
-		Model(&Model{}).
+		Model((*Model)(nil)).
 		Set("name = ?", name).
 		Set("path = ?", path).
 		Set("methods = ?", pgdialect.Array(methods)).
@@ -53,7 +54,12 @@ func (r *repository) UpdateInfo(ctx context.Context, id id.ID, name, path string
 
 func (r *repository) GetByProjectID(ctx context.Context, projectID id.ID) ([]Model, error) {
 	var models []Model
-	err := r.tx.Extract(ctx).NewSelect().Model(&models).Where("project_id = ?", projectID).Scan(ctx)
+	err := r.tx.Extract(ctx).
+		NewSelect().
+		Model(&models).
+		Where("project_id = ?", projectID).
+		Order("order DESC").
+		Scan(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -82,4 +88,12 @@ func (r *repository) DeleteByID(ctx context.Context, id id.ID) error {
 		return err
 	}
 	return nil
+}
+
+func (r *repository) CountByProjectID(ctx context.Context, projectID id.ID) (int, error) {
+	count, err := r.tx.Extract(ctx).NewSelect().Model((*Model)(nil)).Where("project_id = ?", projectID).Count(ctx)
+	if err != nil {
+		return 0, err
+	}
+	return count, nil
 }
