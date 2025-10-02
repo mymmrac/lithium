@@ -26,6 +26,7 @@ func DI(ctx context.Context, v *viper.Viper) rdi.DI {
 				AppName:         version.Name(),
 				Views:           views,
 				StructValidator: &FiberValidatorAdapter{v: v},
+				BodyLimit:       64 * 1024 * 1024,
 			})
 			app.Use(invoker.Middleware)
 			app.Use(auth.Middleware)
