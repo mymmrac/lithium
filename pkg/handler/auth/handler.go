@@ -98,7 +98,7 @@ func (h *handler) registerHandler(fCtx fiber.Ctx) error {
 	err = h.userRepository.Create(fCtx, userModel)
 	if err != nil {
 		if errors.Is(err, user.ErrAlreadyExists) {
-			return fiber.NewError(fiber.StatusConflict, "user already exists")
+			return fiber.NewError(fiber.StatusConflict, "Email already used")
 		}
 
 		logger.FromContext(fCtx).Errorw("create user", "error", err)
