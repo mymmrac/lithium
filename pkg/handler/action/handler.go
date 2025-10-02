@@ -1,6 +1,7 @@
 package action
 
 import (
+	"io"
 	"path"
 	"slices"
 	"strings"
@@ -228,14 +229,32 @@ func (h *handler) updateHandler(fCtx fiber.Ctx) error {
 
 func (h *handler) uploadHandler(fCtx fiber.Ctx) error {
 	var request struct {
-		ProjectID id.ID  `uri:"projectID" validate:"required"`
-		ID        id.ID  `uri:"actionID"  validate:"required"`
-		Module    []byte `form:"module"   validate:"required"`
+		ProjectID id.ID `uri:"projectID" validate:"required"`
+		ID        id.ID `uri:"actionID"  validate:"required"`
 	}
 
 	if err := fCtx.Bind().All(&request); err != nil {
 		logger.FromContext(fCtx).Warnw("upload action, bad request", "error", err)
 		return fiber.NewError(fiber.StatusBadRequest)
+	}
+
+	moduleFileHeader, err := fCtx.FormFile("module")
+	if err != nil {
+		logger.FromContext(fCtx).Warnw("upload action, bad request (file header)", "error", err)
+		return fiber.NewError(fiber.StatusBadRequest)
+	}
+
+	moduleFile, err := moduleFileHeader.Open()
+	if err != nil {
+		logger.FromContext(fCtx).Warnw("upload action, bad request (open file)", "error", err)
+		return fiber.NewError(fiber.StatusBadRequest)
+	}
+	defer func() { _ = moduleFile.Close() }()
+
+	moduleData, err := io.ReadAll(moduleFile)
+	if err != nil {
+		logger.FromContext(fCtx).Errorw("upload action, read module file", "error", err)
+		return fiber.NewError(fiber.StatusInternalServerError)
 	}
 
 	projectModel, found, err := h.projectRepository.GetByID(fCtx, request.ProjectID)
@@ -263,7 +282,7 @@ func (h *handler) uploadHandler(fCtx fiber.Ctx) error {
 		return fiber.NewError(fiber.StatusInternalServerError)
 	}
 
-	if err = h.storage.Upload(ctx, h.cfg.ModuleBucket, modulePath, request.Module); err != nil {
+	if err = h.storage.Upload(ctx, h.cfg.ModuleBucket, modulePath, moduleData); err != nil {
 		logger.FromContext(fCtx).Errorw("upload action module", "error", err)
 		return fiber.NewError(fiber.StatusInternalServerError)
 	}
