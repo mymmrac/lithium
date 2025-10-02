@@ -130,6 +130,9 @@ func (i *invoker) invokeAction(fCtx fiber.Ctx, action action.Model) error {
 		logger.FromContext(fCtx).Warnw("unmarshal response", "error", err)
 		return fiber.NewError(fiber.StatusInternalServerError)
 	}
+	if response.StatusCode == 0 {
+		response.StatusCode = fiber.StatusOK
+	}
 
 	resp := fCtx.Response()
 	resp.SetStatusCode(response.StatusCode)
