@@ -4,6 +4,7 @@
 # Binaries & outputs
 bin/
 .task/
+*.wasm
 
 # Environment files
 .env
