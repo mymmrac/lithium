@@ -1,52 +1,84 @@
-<main>
-    <h1 class="text-3xl">Lithium - create serverless backend with WASM modules</h1>
-    <h2 class="text-xl">Batteries included!</h2>
+<main class="glass-effect rounded-3xl p-12 shadow-2xl">
+    <!-- Hero Section -->
+    <div class="text-center mb-12">
+        <div class="floating-animation mb-8">
+            <div class="inline-flex items-center justify-center w-20 h-20 bg-gradient-to-br from-blue-500 to-purple-600 rounded-2xl shadow-lg pulse-glow">
+                <svg class="w-10 h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                          d="M13 10V3L4 14h7v7l9-11h-7z"></path>
+                </svg>
+            </div>
+        </div>
 
-    <br>
+        <h1 class="text-6xl font-bold bg-gradient-to-r from-blue-600 via-purple-600 to-indigo-600 bg-clip-text text-transparent mb-6 leading-tight">
+            Lithium
+        </h1>
 
-    <div class="flex flex-row gap-4 items-center">
+        <h2 class="text-2xl text-gray-700 font-medium mb-4">
+            Create serverless backend with WASM modules
+        </h2>
+
+        <p class="text-lg text-gray-600 font-light">
+            Batteries included! ⚡
+        </p>
+    </div>
+
+    <!-- Action Buttons -->
+    <div class="flex flex-col sm:flex-row gap-6 items-center justify-center">
         <div x-data="loginForm()">
             <button @click="open = true"
-                    class="px-4 py-2 bg-green-400 rounded shadow hover:bg-green-600 hover:cursor-pointer transition">
-                Login
+                    class="group relative px-8 py-4 bg-gradient-to-r from-emerald-500 to-teal-600 rounded-2xl shadow-lg hover:shadow-xl transform hover:-translate-y-1 transition-all duration-300 text-white font-semibold text-lg">
+                <span class="relative z-10 flex items-center gap-3">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                              d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1"></path>
+                    </svg>
+                    Login
+                </span>
             </button>
 
             <div x-show="open" x-transition.opacity @click.self="open = false" style="display: none;"
-                 class="fixed inset-0 bg-black/50 flex items-center justify-center z-40">
+                 class="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
                 <div x-show="open" x-transition @keydown.escape.window="open = false"
-                     class="bg-white rounded-xl shadow-xl max-w-md w-full p-6 relative z-50">
+                     class="glass-effect rounded-3xl shadow-2xl max-w-md w-full p-8 relative">
                     <form @submit.prevent="await login()">
-                        <div class="flex justify-between items-center border-b pb-3">
-                            <h2 class="text-xl font-semibold">Login</h2>
-                            <button @click="open = false" type="button" class="text-gray-500 hover:text-gray-700">
-                                ✕
+                        <div class="flex justify-between items-center border-b border-gray-200 pb-6 mb-6">
+                            <h2 class="text-2xl font-bold text-gray-800">Welcome Back</h2>
+                            <button @click="open = false" type="button"
+                                    class="text-gray-400 hover:text-gray-600 transition-colors p-2 hover:bg-gray-100 rounded-full">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                          d="M6 18L18 6M6 6l12 12"></path>
+                                </svg>
                             </button>
                         </div>
 
-                        <div class="mt-4 flex flex-col gap-2">
-                            <div class="flex flex-col gap-2">
-                                <label for="login-email">Email</label>
-                                <input x-model="email" type="email" id="login-email" placeholder="Email"
-                                       class="border rounded p-2">
+                        <div class="space-y-6">
+                            <div class="space-y-2">
+                                <label for="login-email" class="text-sm font-semibold text-gray-700">Email
+                                    Address</label>
+                                <input x-model="email" type="email" id="login-email" placeholder="Enter your email"
+                                       class="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 bg-white/50">
                             </div>
 
-                            <div class="flex flex-col gap-2">
-                                <label for="login-password">Password</label>
-                                <input x-model="password" type="password" id="login-password" placeholder="Password"
-                                       class="border rounded p-2">
+                            <div class="space-y-2">
+                                <label for="login-password" class="text-sm font-semibold text-gray-700">Password</label>
+                                <input x-model="password" type="password" id="login-password"
+                                       placeholder="Enter your password"
+                                       class="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 bg-white/50">
                             </div>
 
-                            <p x-show="error" x-text="error" class="text-red-500 text-sm mt-2"></p>
+                            <p x-show="error" x-text="error" class="text-red-500 text-sm bg-red-50 p-3 rounded-lg"></p>
                         </div>
 
-                        <div class="mt-6 flex justify-around gap-2">
+                        <div class="mt-8 flex gap-4">
                             <button @click="open = false" type="button"
-                                    class="px-4 py-2 bg-gray-200 rounded hover:bg-gray-300 hover:cursor-pointer transition">
+                                    class="flex-1 px-6 py-3 bg-gray-100 text-gray-700 rounded-xl hover:bg-gray-200 transition-colors duration-200 font-medium">
                                 Cancel
                             </button>
                             <button type="submit"
-                                    class="px-4 py-2 bg-green-400 rounded hover:bg-green-600 hover:cursor-pointer transition">
-                                Login
+                                    class="flex-1 px-6 py-3 bg-gradient-to-r from-emerald-500 to-teal-600 text-white rounded-xl hover:shadow-lg transform hover:-translate-y-0.5 transition-all duration-200 font-semibold">
+                                Sign In
                             </button>
                         </div>
                     </form>
@@ -54,57 +86,71 @@
             </div>
         </div>
 
-        <div>or</div>
+        <div class="text-gray-500 font-medium">or</div>
 
         <div x-data="registerForm()">
             <button @click="open = true"
-                    class="px-4 py-2 bg-blue-400 rounded shadow hover:bg-blue-600 hover:cursor-pointer transition">
-                Register
+                    class="group relative px-8 py-4 bg-gradient-to-r from-blue-500 to-indigo-600 rounded-2xl shadow-lg hover:shadow-xl transform hover:-translate-y-1 transition-all duration-300 text-white font-semibold text-lg">
+                <span class="relative z-10 flex items-center gap-3">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                              d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"></path>
+                    </svg>
+                    Register
+                </span>
             </button>
 
             <div x-show="open" x-transition.opacity @click.self="open = false" style="display: none;"
-                 class="fixed inset-0 bg-black/50 flex items-center justify-center z-40">
+                 class="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
                 <div x-show="open" x-transition @keydown.escape.window="open = false"
-                     class="bg-white rounded-xl shadow-xl max-w-md w-full p-6 relative z-50">
+                     class="glass-effect rounded-3xl shadow-2xl max-w-md w-full p-8 relative">
                     <form @submit.prevent="await register()">
-                        <div class="flex justify-between items-center border-b pb-3">
-                            <h2 class="text-xl font-semibold">Register</h2>
-                            <button @click="open = false" type="button" class="text-gray-500 hover:text-gray-700">
-                                ✕
+                        <div class="flex justify-between items-center border-b border-gray-200 pb-6 mb-6">
+                            <h2 class="text-2xl font-bold text-gray-800">Create Account</h2>
+                            <button @click="open = false" type="button"
+                                    class="text-gray-400 hover:text-gray-600 transition-colors p-2 hover:bg-gray-100 rounded-full">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                          d="M6 18L18 6M6 6l12 12"></path>
+                                </svg>
                             </button>
                         </div>
 
-                        <div class="mt-4 flex flex-col gap-2">
-                            <div class="flex flex-col gap-2">
-                                <label for="register-email">Email</label>
-                                <input x-model="email" type="email" id="register-email" placeholder="Email"
-                                       class="border rounded p-2">
+                        <div class="space-y-6">
+                            <div class="space-y-2">
+                                <label for="register-email" class="text-sm font-semibold text-gray-700">Email
+                                    Address</label>
+                                <input x-model="email" type="email" id="register-email" placeholder="Enter your email"
+                                       class="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 bg-white/50">
                             </div>
 
-                            <div class="flex flex-col gap-2">
-                                <label for="register-password">Password</label>
-                                <input x-model="password" type="password" id="register-password" placeholder="Password"
-                                       class="border rounded p-2">
+                            <div class="space-y-2">
+                                <label for="register-password"
+                                       class="text-sm font-semibold text-gray-700">Password</label>
+                                <input x-model="password" type="password" id="register-password"
+                                       placeholder="Create a password"
+                                       class="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 bg-white/50">
                             </div>
 
-                            <div class="flex flex-col gap-2">
-                                <label for="register-confirm-password">Confirm password</label>
+                            <div class="space-y-2">
+                                <label for="register-confirm-password" class="text-sm font-semibold text-gray-700">Confirm
+                                    Password</label>
                                 <input x-model="confirmPassword" type="password" id="register-confirm-password"
-                                       placeholder="Password"
-                                       class="border rounded p-2">
+                                       placeholder="Confirm your password"
+                                       class="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 bg-white/50">
                             </div>
 
-                            <p x-show="error" x-text="error" class="text-red-500 text-sm mt-2"></p>
+                            <p x-show="error" x-text="error" class="text-red-500 text-sm bg-red-50 p-3 rounded-lg"></p>
                         </div>
 
-                        <div class="mt-6 flex justify-around gap-2">
+                        <div class="mt-8 flex gap-4">
                             <button @click="open = false" type="button"
-                                    class="px-4 py-2 bg-gray-200 rounded hover:bg-gray-300 hover:cursor-pointer transition">
+                                    class="flex-1 px-6 py-3 bg-gray-100 text-gray-700 rounded-xl hover:bg-gray-200 transition-colors duration-200 font-medium">
                                 Cancel
                             </button>
                             <button type="submit"
-                                    class="px-4 py-2 bg-blue-400 rounded hover:bg-blue-600 hover:cursor-pointer transition">
-                                Register
+                                    class="flex-1 px-6 py-3 bg-gradient-to-r from-blue-500 to-indigo-600 text-white rounded-xl hover:shadow-lg transform hover:-translate-y-0.5 transition-all duration-200 font-semibold">
+                                Create Account
                             </button>
                         </div>
                     </form>
