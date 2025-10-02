@@ -41,8 +41,6 @@ func HashPassword(password string) (string, error) {
 
 // ComparePasswordAndHash verifies password against the PHC-style encoded hash.
 // needsRehash == true if the stored hash uses weaker params than current defaults.
-//
-//nolint:funlen
 func ComparePasswordAndHash(password, encodedHash string) (match bool, needsRehash bool, err error) {
 	parts := strings.Split(encodedHash, "$")
 	// Expected parts: ["", "argon2id", "v=19", "m=...,t=...,p=...", "salt", "hash"]

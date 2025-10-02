@@ -1,13 +1,15 @@
 package invoker
 
 import (
-	"strconv"
+	"encoding/json"
 
 	"github.com/gofiber/fiber/v3"
+	"github.com/mymmrac/wape"
 
 	"github.com/mymmrac/lithium/pkg/module/action"
 	"github.com/mymmrac/lithium/pkg/module/logger"
 	"github.com/mymmrac/lithium/pkg/module/project"
+	"github.com/mymmrac/lithium/pkg/module/protocol"
 	"github.com/mymmrac/lithium/pkg/module/storage"
 )
 
@@ -88,5 +90,55 @@ func (i *invoker) invokeAction(fCtx fiber.Ctx, action action.Model) error {
 		return fiber.NewError(fiber.StatusInternalServerError)
 	}
 
-	return fCtx.SendString(strconv.Itoa(len(moduleData)))
+	env := wape.NewEnvironment()
+	env.Modules = []wape.ModuleData{
+		{
+			Name: "main",
+			Data: moduleData,
+		},
+	}
+
+	module, err := wape.NewPlugin(fCtx, env)
+	if err != nil {
+		logger.FromContext(fCtx).Errorw("instantiate module", "error", err)
+		return fiber.NewError(fiber.StatusInternalServerError)
+	}
+
+	request, err := json.Marshal(protocol.Request{
+		URL:     string(fCtx.Request().URI().FullURI()),
+		Method:  fCtx.Method(),
+		Headers: fCtx.GetHeaders(),
+		Body:    string(fCtx.Body()),
+	})
+	if err != nil {
+		logger.FromContext(fCtx).Errorw("marshal request", "error", err)
+		return fiber.NewError(fiber.StatusInternalServerError)
+	}
+
+	exitCode, responseData, err := module.CallWithContext(fCtx, "handler", request)
+	if err != nil {
+		logger.FromContext(fCtx).Warnw("call module", "error", err)
+		return fiber.NewError(fiber.StatusInternalServerError)
+	}
+	if exitCode != 0 {
+		logger.FromContext(fCtx).Warnw("call module", "exit-code", exitCode)
+		return fiber.NewError(fiber.StatusInternalServerError)
+	}
+
+	var response protocol.Response
+	if err = json.Unmarshal(responseData, &response); err != nil {
+		logger.FromContext(fCtx).Warnw("unmarshal response", "error", err)
+		return fiber.NewError(fiber.StatusInternalServerError)
+	}
+
+	resp := fCtx.Response()
+	resp.SetStatusCode(response.StatusCode)
+	for key, values := range response.Headers {
+		for _, value := range values {
+			resp.Header.Add(key, value)
+		}
+	}
+	resp.SetBodyString(response.Body)
+
+	return nil
 }
