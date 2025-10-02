@@ -49,10 +49,11 @@ func RegisterHandlers(
 }
 
 type actionInfo struct {
-	ID      id.ID    `json:"id"`
-	Name    string   `json:"name"`
-	Path    string   `json:"path"`
-	Methods []string `json:"methods"`
+	ID             id.ID    `json:"id"`
+	Name           string   `json:"name"`
+	Path           string   `json:"path"`
+	Methods        []string `json:"methods"`
+	ModuleUploaded bool     `json:"moduleUploaded"`
 }
 
 func (h *handler) getAllHandler(fCtx fiber.Ctx) error {
@@ -83,10 +84,11 @@ func (h *handler) getAllHandler(fCtx fiber.Ctx) error {
 	response := make([]actionInfo, len(models))
 	for i, model := range models {
 		response[i] = actionInfo{
-			ID:      model.ID,
-			Name:    model.Name,
-			Path:    model.Path,
-			Methods: model.Methods,
+			ID:             model.ID,
+			Name:           model.Name,
+			Path:           model.Path,
+			Methods:        model.Methods,
+			ModuleUploaded: model.ModulePath != "",
 		}
 	}
 
@@ -123,10 +125,11 @@ func (h *handler) getHandler(fCtx fiber.Ctx) error {
 	}
 
 	return fCtx.JSON(&actionInfo{
-		ID:      model.ID,
-		Name:    model.Name,
-		Path:    model.Path,
-		Methods: model.Methods,
+		ID:             model.ID,
+		Name:           model.Name,
+		Path:           model.Path,
+		Methods:        model.Methods,
+		ModuleUploaded: model.ModulePath != "",
 	})
 }
 

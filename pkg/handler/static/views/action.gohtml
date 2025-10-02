@@ -91,9 +91,11 @@
     <br><br>
 
     <div>
+        <span x-text="action.moduleUploaded ? 'Uploaded' : 'Not Uploaded'"></span>
+        <br>
         <input type="file" @change="selectModuleFile($event)" accept=".wasm"/>
         <button @click="await uploadModule()" :disabled="!moduleFile"
-                class="px-4 py-2 bg-blue-500 text-white rounded mt-2">
+                class="px-4 py-2 bg-green-400 rounded shadow hover:bg-green-600 hover:cursor-pointer disabled:hover:cursor-not-allowed disabled:bg-green-600 transition">
             Upload
         </button>
     </div>
