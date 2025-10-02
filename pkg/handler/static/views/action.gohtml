@@ -260,6 +260,7 @@
                         throw new Error("Upload failed")
                     }
 
+                    await this.loadAction()
                     alert("File uploaded successfully!")
                 } catch (err) {
                     alert("Error: " + err.message)
