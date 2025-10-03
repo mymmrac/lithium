@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8"/>
+    <title>Weather Search</title>
+    <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 min-h-screen flex items-center justify-center p-6">
+    <div x-data="weatherApp()" class="w-full max-w-3xl bg-white shadow-xl rounded-2xl p-6">
+        <h1 class="text-2xl font-bold mb-6 text-gray-800">🌤 Weather Search</h1>
+
+        <form @submit.prevent="await searchLocation()" class="flex gap-2 mb-6">
+            <input type="text" x-model="query" placeholder="Enter location..."
+                   class="flex-1 border rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500 outline-none"/>
+            <button type="submit"
+                    class="px-4 py-2 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 transition">
+                Search
+            </button>
+        </form>
+
+        <template x-if="results.length > 0">
+            <div class="overflow-x-auto">
+                <table class="min-w-full text-sm text-left text-gray-600 border border-gray-200 rounded-lg overflow-hidden">
+                    <thead class="bg-gray-200 text-gray-700 uppercase text-xs">
+                    <tr>
+                        <th class="px-4 py-2">Name</th>
+                        <th class="px-4 py-2">Country</th>
+                        <th class="px-4 py-2">Latitude</th>
+                        <th class="px-4 py-2">Longitude</th>
+                        <th class="px-4 py-2">Temperature</th>
+                        <th class="px-4 py-2">Perception</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <template x-for="result in results">
+                        <tr class="odd:bg-white even:bg-gray-50 hover:bg-blue-50 transition">
+                            <td class="px-4 py-2 font-medium text-gray-800" x-text="result.name"></td>
+                            <td class="px-4 py-2" x-text="result.country"></td>
+                            <td class="px-4 py-2" x-text="result.latitude"></td>
+                            <td class="px-4 py-2" x-text="result.longitude"></td>
+                            <td class="px-4 py-2" x-text="result.temperature.toFixed(2) + ' °C'"></td>
+                            <td class="px-4 py-2" x-text="result.perception.toFixed(2) + '%'"></td>
+                        </tr>
+                    </template>
+                    </tbody>
+                </table>
+            </div>
+        </template>
+    </div>
+
+    <script>
+        function weatherApp() {
+            return {
+                query: "",
+                results: [],
+
+                async searchLocation() {
+                    if (!this.query.trim()) {
+                        return
+                    }
+
+                    try {
+                        // Call location API
+                        const locResp = await fetch("/api/location", {
+                            method: "POST",
+                            headers: {"Content-Type": "application/json"},
+                            body: JSON.stringify({location: this.query}),
+                        })
+                        const locData = await locResp.json()
+
+                        // Call weather API with coordinates
+                        const weatherResp = await fetch("/api/weather", {
+                            method: "POST",
+                            headers: {"Content-Type": "application/json"},
+                            body: JSON.stringify({latitude: locData.latitude, longitude: locData.longitude}),
+                        })
+                        const weatherData = await weatherResp.json()
+
+                        // Merge and store
+                        this.results.push({
+                            name: locData.name,
+                            country: locData.country,
+                            latitude: locData.latitude,
+                            longitude: locData.longitude,
+                            temperature: weatherData.temperature,
+                            perception: weatherData.perception,
+                        })
+
+                        this.query = "" // Clear input
+                    } catch (err) {
+                        alert("Error fetching data")
+                        console.error(err)
+                    }
+                },
+            }
+        }
+    </script>
+</body>
+</html>

@@ -8,8 +8,8 @@ import (
 	"github.com/mymmrac/lithium/pkg/module/action"
 	"github.com/mymmrac/lithium/pkg/module/logger"
 	"github.com/mymmrac/lithium/pkg/module/project"
-	"github.com/mymmrac/lithium/pkg/module/protocol"
 	"github.com/mymmrac/lithium/pkg/module/storage"
+	"github.com/mymmrac/lithium/pkg/plugin/protocol"
 )
 
 type Invoker interface {
@@ -106,6 +106,11 @@ func (i *invoker) invokeAction(fCtx fiber.Ctx, action action.Model) error {
 				Data: moduleData,
 			},
 		}
+
+		// TODO: Take from config
+		env.NetworkEnabled = true
+		env.NetworksAllowAll = true
+		env.NetworkAddressesAllowAll = true
 
 		var compiledPlugin *extism.CompiledPlugin
 		compiledPlugin, err = wape.NewCompiledPlugin(fCtx, env)
