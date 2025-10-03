@@ -10,32 +10,49 @@
     <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
     <link rel="manifest" href="/site.webmanifest">
     <title>Lithium</title>
-    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
-    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.15.0/dist/cdn.min.js"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <script src="/lib/tailwindcss.js"></script>
+    <script defer src="/lib/alpine.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
+          rel="stylesheet">
     <style>
-        body { font-family: 'Inter', sans-serif; }
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+
         .gradient-bg {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
         }
+
         .glass-effect {
             backdrop-filter: blur(16px) saturate(180%);
             background-color: rgba(255, 255, 255, 0.75);
             border: 1px solid rgba(255, 255, 255, 0.125);
         }
+
         .floating-animation {
             animation: floating 6s ease-in-out infinite;
         }
+
         @keyframes floating {
-            0%, 100% { transform: translateY(0px); }
-            50% { transform: translateY(-20px); }
+            0%, 100% {
+                transform: translateY(0px);
+            }
+            50% {
+                transform: translateY(-20px);
+            }
         }
+
         .pulse-glow {
             animation: pulse-glow 2s ease-in-out infinite alternate;
         }
+
         @keyframes pulse-glow {
-            from { box-shadow: 0 0 20px rgba(102, 126, 234, 0.4); }
-            to { box-shadow: 0 0 40px rgba(102, 126, 234, 0.8); }
+            from {
+                box-shadow: 0 0 20px rgba(102, 126, 234, 0.4);
+            }
+            to {
+                box-shadow: 0 0 40px rgba(102, 126, 234, 0.8);
+            }
         }
     </style>
 </head>
