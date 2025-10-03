@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/gofiber/fiber/v3"
+	"github.com/mymmrac/wape"
 
 	"github.com/mymmrac/lithium/pkg/module/action"
 	"github.com/mymmrac/lithium/pkg/module/auth"
@@ -267,7 +268,24 @@ func (h *handler) uploadHandler(fCtx fiber.Ctx) error {
 		return fiber.NewError(fiber.StatusNotFound)
 	}
 
-	// TODO: Add module validation (compilation)?
+	env := wape.NewEnvironment()
+	env.Modules = []wape.ModuleData{
+		{
+			Name: "main",
+			Data: moduleData,
+		},
+	}
+
+	module, err := wape.NewPlugin(fCtx, env)
+	if err != nil {
+		logger.FromContext(fCtx).Warnw("instantiate module", "error", err)
+		return fiber.NewError(fiber.StatusInternalServerError)
+	}
+
+	if !module.FunctionExists("handler") {
+		logger.FromContext(fCtx).Warnw("handler function doesn't exist")
+		return fiber.NewError(fiber.StatusBadRequest, "Handler function is missing")
+	}
 
 	ctx, err := h.tx.Begin(fCtx)
 	if err != nil {
