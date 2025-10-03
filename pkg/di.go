@@ -38,7 +38,8 @@ func DI(ctx context.Context, v *viper.Viper) rdi.DI {
 		MustProvide(storage.NewStorage).
 		MustProvide(user.NewRepository).
 		MustProvide(project.NewRepository).
-		MustProvide(action.NewRepository)
+		MustProvide(action.NewRepository).
+		MustProvide(action.NewCache)
 }
 
 type FiberValidatorAdapter struct {

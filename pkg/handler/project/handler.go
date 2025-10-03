@@ -22,19 +22,22 @@ type handler struct {
 	tx                db.Transaction
 	userRepository    user.Repository
 	projectRepository project.Repository
+	actionCache       action.Cache
 	actionRepository  action.Repository
 	storage           storage.Storage
 }
 
 func RegisterHandlers(
 	cfg Config, router fiber.Router, tx db.Transaction, userRepository user.Repository,
-	projectRepository project.Repository, actionRepository action.Repository, storage storage.Storage,
+	projectRepository project.Repository, actionCache action.Cache, actionRepository action.Repository,
+	storage storage.Storage,
 ) {
 	h := &handler{
 		cfg:               cfg,
 		tx:                tx,
 		userRepository:    userRepository,
 		projectRepository: projectRepository,
+		actionCache:       actionCache,
 		actionRepository:  actionRepository,
 		storage:           storage,
 	}
@@ -200,6 +203,11 @@ func (h *handler) deleteHandler(fCtx fiber.Ctx) error {
 		if actionModel.ModulePath != "" {
 			if err = h.storage.Delete(ctx, h.cfg.ModuleBucket, actionModel.ModulePath); err != nil {
 				logger.FromContext(ctx).Errorw("delete action module", "error", err)
+				return fiber.NewError(fiber.StatusInternalServerError)
+			}
+
+			if err = h.actionCache.Remove(fCtx, actionModel.ID); err != nil {
+				logger.FromContext(fCtx).Errorw("remove action from cache", "id", actionModel.ID, "error", err)
 				return fiber.NewError(fiber.StatusInternalServerError)
 			}
 		}

@@ -22,18 +22,20 @@ import (
 type handler struct {
 	cfg               Config
 	tx                db.Transaction
+	actionCache       action.Cache
 	actionRepository  action.Repository
 	projectRepository project.Repository
 	storage           storage.Storage
 }
 
 func RegisterHandlers(
-	cfg Config, router fiber.Router, tx db.Transaction, actionRepository action.Repository,
+	cfg Config, router fiber.Router, tx db.Transaction, actionCache action.Cache, actionRepository action.Repository,
 	projectRepository project.Repository, storage storage.Storage,
 ) {
 	h := &handler{
 		cfg:               cfg,
 		tx:                tx,
+		actionCache:       actionCache,
 		actionRepository:  actionRepository,
 		projectRepository: projectRepository,
 		storage:           storage,
@@ -310,6 +312,11 @@ func (h *handler) uploadHandler(fCtx fiber.Ctx) error {
 		return fiber.NewError(fiber.StatusInternalServerError)
 	}
 
+	if err = h.actionCache.Remove(fCtx, request.ID); err != nil {
+		logger.FromContext(fCtx).Errorw("remove action from cache", "id", request.ID, "error", err)
+		return fiber.NewError(fiber.StatusInternalServerError)
+	}
+
 	return fCtx.JSON(fiber.Map{"ok": true})
 }
 
@@ -407,6 +414,11 @@ func (h *handler) deleteHandler(fCtx fiber.Ctx) error {
 	if model.ModulePath != "" {
 		if err = h.storage.Delete(ctx, h.cfg.ModuleBucket, model.ModulePath); err != nil {
 			logger.FromContext(fCtx).Errorw("delete action module", "error", err)
+			return fiber.NewError(fiber.StatusInternalServerError)
+		}
+
+		if err = h.actionCache.Remove(fCtx, request.ID); err != nil {
+			logger.FromContext(fCtx).Errorw("remove action from cache", "id", request.ID, "error", err)
 			return fiber.NewError(fiber.StatusInternalServerError)
 		}
 	}

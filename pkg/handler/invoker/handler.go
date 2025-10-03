@@ -1,6 +1,7 @@
 package invoker
 
 import (
+	extism "github.com/extism/go-sdk"
 	"github.com/gofiber/fiber/v3"
 	"github.com/mymmrac/wape"
 
@@ -18,16 +19,19 @@ type Invoker interface {
 type invoker struct {
 	cfg               Config
 	storage           storage.Storage
+	actionCache       action.Cache
 	actionRepository  action.Repository
 	projectRepository project.Repository
 }
 
 func NewInvoker(
-	cfg Config, storage storage.Storage, actionRepository action.Repository, projectRepository project.Repository,
+	cfg Config, storage storage.Storage, actionCache action.Cache, actionRepository action.Repository,
+	projectRepository project.Repository,
 ) Invoker {
 	return &invoker{
 		cfg:               cfg,
 		storage:           storage,
+		actionCache:       actionCache,
 		actionRepository:  actionRepository,
 		projectRepository: projectRepository,
 	}
@@ -82,21 +86,43 @@ func (i *invoker) invokeAction(fCtx fiber.Ctx, action action.Model) error {
 		return fiber.NewError(fiber.StatusNotImplemented)
 	}
 
-	moduleData, err := i.storage.Download(fCtx, i.cfg.ModuleBucket, action.ModulePath)
+	module, ok, err := i.actionCache.Get(fCtx, action.ID)
 	if err != nil {
-		logger.FromContext(fCtx).Errorw("download module", "module", action.ModulePath, "error", err)
+		logger.FromContext(fCtx).Errorw("get action module from cache", "id", action.ID, "error", err)
 		return fiber.NewError(fiber.StatusInternalServerError)
 	}
+	if !ok {
+		var moduleData []byte
+		moduleData, err = i.storage.Download(fCtx, i.cfg.ModuleBucket, action.ModulePath)
+		if err != nil {
+			logger.FromContext(fCtx).Errorw("download module", "module", action.ModulePath, "error", err)
+			return fiber.NewError(fiber.StatusInternalServerError)
+		}
 
-	env := wape.NewEnvironment()
-	env.Modules = []wape.ModuleData{
-		{
-			Name: "main",
-			Data: moduleData,
-		},
+		env := wape.NewEnvironment()
+		env.Modules = []wape.ModuleData{
+			{
+				Name: "main",
+				Data: moduleData,
+			},
+		}
+
+		var compiledPlugin *extism.CompiledPlugin
+		compiledPlugin, err = wape.NewCompiledPlugin(fCtx, env)
+		if err != nil {
+			logger.FromContext(fCtx).Errorw("compile module", "error", err)
+			return fiber.NewError(fiber.StatusInternalServerError)
+		}
+
+		module.CompiledPlugin = compiledPlugin
+		module.PluginInstanceConfig = env.MakePluginInstanceConfig()
+
+		if err = i.actionCache.Set(fCtx, action.ID, module); err != nil {
+			logger.Warnw(fCtx, "set action module cache", "error", err)
+		}
 	}
 
-	module, err := wape.NewPlugin(fCtx, env)
+	plugin, err := module.CompiledPlugin.Instance(fCtx, module.PluginInstanceConfig)
 	if err != nil {
 		logger.FromContext(fCtx).Errorw("instantiate module", "error", err)
 		return fiber.NewError(fiber.StatusInternalServerError)
@@ -113,7 +139,7 @@ func (i *invoker) invokeAction(fCtx fiber.Ctx, action action.Model) error {
 		return fiber.NewError(fiber.StatusInternalServerError)
 	}
 
-	exitCode, responseData, err := module.CallWithContext(fCtx, "handler", request)
+	exitCode, responseData, err := plugin.CallWithContext(fCtx, "handler", request)
 	if err != nil {
 		logger.FromContext(fCtx).Warnw("call module", "error", err)
 		return fiber.NewError(fiber.StatusInternalServerError)
