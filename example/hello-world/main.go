@@ -5,17 +5,19 @@ import (
 	"fmt"
 
 	"github.com/extism/go-pdk"
+
+	"github.com/mymmrac/lithium/pkg/module/protocol"
 )
 
 //go:wasmexport handler
 func Handle() {
-	var request Request
+	var request protocol.Request
 	if err := pdk.InputJSON(&request); err != nil {
 		pdk.SetError(fmt.Errorf("unmarshal request: %w", err))
 		return
 	}
 
-	response := Response{
+	response := protocol.Response{
 		StatusCode: 200,
 		Headers:    nil,
 		Body:       "Hello World!",
@@ -25,19 +27,6 @@ func Handle() {
 		pdk.SetError(fmt.Errorf("marshal response: %w", err))
 		return
 	}
-}
-
-type Request struct {
-	URL     string              `json:"url"`
-	Method  string              `json:"method"`
-	Headers map[string][]string `json:"headers"`
-	Body    string              `json:"body"`
-}
-
-type Response struct {
-	StatusCode int                 `json:"statusCode"`
-	Headers    map[string][]string `json:"headers"`
-	Body       string              `json:"body"`
 }
 
 func main() {}

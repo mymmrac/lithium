@@ -56,6 +56,7 @@ tasks:
     deps: [ install:mock ]
     cmds:
       - go generate ./...
+      - ls ./example/ | xargs -i go -C "./example/{}" generate
 
   vulnerability:
     desc: "Check for vulnerabilities"
