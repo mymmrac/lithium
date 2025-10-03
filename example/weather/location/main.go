@@ -16,7 +16,10 @@ import (
 
 //go:wasmexport handler
 func Handle() {
-	network.PatchDefaultHTTPClient()
+	if err := network.PatchDefaultHTTPClient(); err != nil {
+		pdk.SetError(fmt.Errorf("pathc http client: %w", err))
+		return
+	}
 
 	var request protocol.Request
 	if err := pdk.InputJSON(&request); err != nil {

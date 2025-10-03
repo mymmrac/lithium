@@ -1,6 +1,6 @@
 github.com/extism/go-pdk v1.1.3 h1:hfViMPWrqjN6u67cIYRALZTZLk/enSPpNKa+rZ9X2SQ=
 github.com/extism/go-pdk v1.1.3/go.mod h1:Gz+LIU/YCKnKXhgge8yo5Yu1F/lbv7KtKFkiCSzW/P4=
-github.com/mymmrac/lithium v0.0.0-20251003123332-d2abab494035 h1:QNtk7t0tcX4xzrxRIqQKbrLmMGvBSQZ7i3UMF65myKI=
-github.com/mymmrac/lithium v0.0.0-20251003123332-d2abab494035/go.mod h1:dAuPcrvsXzm8XzvgiWZ6+wBve8yh6VgTnxtiaW8Cbag=
+github.com/mymmrac/lithium v0.0.0-20251003141044-2a380f815a58 h1:6XH5CquoejSirxdsw0qJoLvJjRMLzAN10G4l5UJ3+ag=
+github.com/mymmrac/lithium v0.0.0-20251003141044-2a380f815a58/go.mod h1:08HwcIFwikRErv1CS5sxSlSW5DAZZi4UpAYEJ1jlWmQ=
 github.com/mymmrac/wape/plugin v0.0.0-20250913203235-3223c0f05867 h1:7YvDcMOsj02SYJUbo31rKU2zqV9qbr9vsMMEHPoOb18=
 github.com/mymmrac/wape/plugin v0.0.0-20250913203235-3223c0f05867/go.mod h1:4hiYW04gwMuumfoSnVLuAQSL7/4WsCC7UwldoghiIi8=
