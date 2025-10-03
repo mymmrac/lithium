@@ -374,11 +374,25 @@ func (h *handler) deleteHandler(fCtx fiber.Ctx) error {
 		return fiber.NewError(fiber.StatusNotFound)
 	}
 
-	// TODO: Remove module
-
-	err = h.actionRepository.DeleteByID(fCtx, request.ID)
+	ctx, err := h.tx.Begin(fCtx)
 	if err != nil {
+		logger.FromContext(fCtx).Errorw("begin transaction", "error", err)
+		return fiber.NewError(fiber.StatusInternalServerError)
+	}
+	defer func() { _ = h.tx.Rollback(ctx) }()
+
+	if err = h.actionRepository.DeleteByID(ctx, model.ID); err != nil {
 		logger.FromContext(fCtx).Errorw("delete action", "error", err)
+		return fiber.NewError(fiber.StatusInternalServerError)
+	}
+
+	if err = h.storage.Delete(ctx, h.cfg.ModuleBucket, model.ModulePath); err != nil {
+		logger.FromContext(fCtx).Errorw("delete action module", "error", err)
+		return fiber.NewError(fiber.StatusInternalServerError)
+	}
+
+	if err = h.tx.Commit(ctx); err != nil {
+		logger.FromContext(fCtx).Errorw("commit transaction", "error", err)
 		return fiber.NewError(fiber.StatusInternalServerError)
 	}
 

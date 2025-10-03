@@ -13,6 +13,7 @@ import (
 type Storage interface {
 	Upload(ctx context.Context, bucket, path string, data []byte) error
 	Download(ctx context.Context, bucket, path string) ([]byte, error)
+	Delete(ctx context.Context, bucket, path string) error
 }
 
 type storage struct {
@@ -51,4 +52,8 @@ func (s *storage) Download(ctx context.Context, bucket, path string) ([]byte, er
 	}
 
 	return data, nil
+}
+
+func (s *storage) Delete(ctx context.Context, bucket, path string) error {
+	return s.client.RemoveObject(ctx, bucket, path, minio.RemoveObjectOptions{})
 }

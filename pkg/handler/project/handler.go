@@ -7,22 +7,36 @@ import (
 
 	"github.com/gofiber/fiber/v3"
 
+	"github.com/mymmrac/lithium/pkg/module/action"
 	"github.com/mymmrac/lithium/pkg/module/auth"
+	"github.com/mymmrac/lithium/pkg/module/db"
 	"github.com/mymmrac/lithium/pkg/module/id"
 	"github.com/mymmrac/lithium/pkg/module/logger"
 	"github.com/mymmrac/lithium/pkg/module/project"
+	"github.com/mymmrac/lithium/pkg/module/storage"
 	"github.com/mymmrac/lithium/pkg/module/user"
 )
 
 type handler struct {
+	cfg               Config
+	tx                db.Transaction
 	userRepository    user.Repository
 	projectRepository project.Repository
+	actionRepository  action.Repository
+	storage           storage.Storage
 }
 
-func RegisterHandlers(router fiber.Router, userRepository user.Repository, projectRepository project.Repository) {
+func RegisterHandlers(
+	cfg Config, router fiber.Router, tx db.Transaction, userRepository user.Repository,
+	projectRepository project.Repository, actionRepository action.Repository, storage storage.Storage,
+) {
 	h := &handler{
+		cfg:               cfg,
+		tx:                tx,
 		userRepository:    userRepository,
 		projectRepository: projectRepository,
+		actionRepository:  actionRepository,
+		storage:           storage,
 	}
 
 	api := router.Group("/api/project", auth.RequireMiddleware)
@@ -164,11 +178,38 @@ func (h *handler) deleteHandler(fCtx fiber.Ctx) error {
 		return fiber.NewError(fiber.StatusNotFound)
 	}
 
-	// TODO: Remove all actions (and modules)
-
-	err = h.projectRepository.DeleteByID(fCtx, request.ID)
+	ctx, err := h.tx.Begin(fCtx)
 	if err != nil {
-		logger.FromContext(fCtx).Errorw("delete project", "error", err)
+		logger.FromContext(fCtx).Errorw("begin transaction", "error", err)
+		return fiber.NewError(fiber.StatusInternalServerError)
+	}
+	defer func() { _ = h.tx.Rollback(ctx) }()
+
+	actions, err := h.actionRepository.GetByProjectID(ctx, request.ID)
+	if err != nil {
+		logger.FromContext(ctx).Errorw("get project actions", "error", err)
+		return fiber.NewError(fiber.StatusInternalServerError)
+	}
+
+	for _, actionModel := range actions {
+		if err = h.actionRepository.DeleteByID(ctx, actionModel.ID); err != nil {
+			logger.FromContext(ctx).Errorw("delete action", "error", err)
+			return fiber.NewError(fiber.StatusInternalServerError)
+		}
+
+		if err = h.storage.Delete(ctx, h.cfg.ModuleBucket, actionModel.ModulePath); err != nil {
+			logger.FromContext(ctx).Errorw("delete action module", "error", err)
+			return fiber.NewError(fiber.StatusInternalServerError)
+		}
+	}
+
+	if err = h.projectRepository.DeleteByID(ctx, request.ID); err != nil {
+		logger.FromContext(ctx).Errorw("delete project", "error", err)
+		return fiber.NewError(fiber.StatusInternalServerError)
+	}
+
+	if err = h.tx.Commit(ctx); err != nil {
+		logger.FromContext(fCtx).Errorw("commit transaction", "error", err)
 		return fiber.NewError(fiber.StatusInternalServerError)
 	}
 
