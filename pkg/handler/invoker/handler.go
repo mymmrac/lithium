@@ -1,8 +1,6 @@
 package invoker
 
 import (
-	"encoding/json"
-
 	"github.com/gofiber/fiber/v3"
 	"github.com/mymmrac/wape"
 
@@ -104,12 +102,12 @@ func (i *invoker) invokeAction(fCtx fiber.Ctx, action action.Model) error {
 		return fiber.NewError(fiber.StatusInternalServerError)
 	}
 
-	request, err := json.Marshal(protocol.Request{
+	request, err := (&protocol.Request{
 		URL:     string(fCtx.Request().URI().FullURI()),
 		Method:  fCtx.Method(),
 		Headers: fCtx.GetHeaders(),
 		Body:    string(fCtx.Body()),
-	})
+	}).Marshal()
 	if err != nil {
 		logger.FromContext(fCtx).Errorw("marshal request", "error", err)
 		return fiber.NewError(fiber.StatusInternalServerError)
@@ -126,7 +124,7 @@ func (i *invoker) invokeAction(fCtx fiber.Ctx, action action.Model) error {
 	}
 
 	var response protocol.Response
-	if err = json.Unmarshal(responseData, &response); err != nil {
+	if err = response.Unmarshal(responseData); err != nil {
 		logger.FromContext(fCtx).Warnw("unmarshal response", "error", err)
 		return fiber.NewError(fiber.StatusInternalServerError)
 	}
