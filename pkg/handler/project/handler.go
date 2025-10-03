@@ -197,9 +197,11 @@ func (h *handler) deleteHandler(fCtx fiber.Ctx) error {
 			return fiber.NewError(fiber.StatusInternalServerError)
 		}
 
-		if err = h.storage.Delete(ctx, h.cfg.ModuleBucket, actionModel.ModulePath); err != nil {
-			logger.FromContext(ctx).Errorw("delete action module", "error", err)
-			return fiber.NewError(fiber.StatusInternalServerError)
+		if actionModel.ModulePath != "" {
+			if err = h.storage.Delete(ctx, h.cfg.ModuleBucket, actionModel.ModulePath); err != nil {
+				logger.FromContext(ctx).Errorw("delete action module", "error", err)
+				return fiber.NewError(fiber.StatusInternalServerError)
+			}
 		}
 	}
 
