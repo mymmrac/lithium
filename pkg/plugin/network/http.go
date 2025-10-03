@@ -9,23 +9,18 @@ import (
 	"net/http"
 	"os"
 
-	"github.com/extism/go-pdk"
 	"github.com/mymmrac/wape/plugin/net"
 )
 
-// TODO: Return error
-func HTTPClient() *http.Client {
-	// TODO: Read from env
-	caPEM, err := os.ReadFile("/certs/ca-certificates.crt")
+func HTTPClient() (*http.Client, error) {
+	caPEM, err := os.ReadFile(os.Getenv("LITHIUM_CA_CERT_FILE"))
 	if err != nil {
-		pdk.SetError(fmt.Errorf("reading CA cert: %w", err))
-		return nil
+		return nil, fmt.Errorf("reading CA cert: %w", err)
 	}
 
 	certPool := x509.NewCertPool()
 	if ok := certPool.AppendCertsFromPEM(caPEM); !ok {
-		pdk.SetError(fmt.Errorf("unable to append CA cert"))
-		return nil
+		return nil, fmt.Errorf("unable to append CA cert")
 	}
 
 	return &http.Client{
@@ -33,9 +28,15 @@ func HTTPClient() *http.Client {
 			DialContext:     net.DefaultDialer.DialContext,
 			TLSClientConfig: &tls.Config{RootCAs: certPool},
 		},
-	}
+	}, nil
 }
 
-func PatchDefaultHTTPClient() {
-	http.DefaultClient = HTTPClient()
+func PatchDefaultHTTPClient() error {
+	client, err := HTTPClient()
+	if err != nil {
+		return err
+	}
+
+	http.DefaultClient = client
+	return nil
 }

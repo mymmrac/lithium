@@ -1,6 +1,9 @@
 package invoker
 
 import (
+	"path"
+	"path/filepath"
+
 	extism "github.com/extism/go-sdk"
 	"github.com/gofiber/fiber/v3"
 	"github.com/mymmrac/wape"
@@ -115,9 +118,13 @@ func (i *invoker) invokeAction(fCtx fiber.Ctx, action action.Model) error {
 		env.WallTimeFromHost = true
 		env.NanoTimeFromHost = true
 
-		// TODO: Add env
+		const pluginCADir = "/certs"
+		const caFile = "/etc/ssl/certs/ca-certificates.crt"
+		env.EnvsMap = map[string]string{
+			"LITHIUM_CA_CERT_FILE": path.Join(pluginCADir, filepath.Base(caFile)),
+		}
 		env.FSAllowedPaths = map[string]string{
-			"ro:/etc/ssl/certs": "/certs",
+			"ro:" + filepath.Dir(caFile): pluginCADir,
 		}
 
 		var compiledPlugin *extism.CompiledPlugin
