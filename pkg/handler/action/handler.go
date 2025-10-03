@@ -66,13 +66,13 @@ func (h *handler) getAllHandler(fCtx fiber.Ctx) error {
 	}
 
 	if err := fCtx.Bind().URI(&request); err != nil {
-		logger.FromContext(fCtx).Warnw("get actions, bad request", "error", err)
+		logger.Warnw(fCtx, "get actions, bad request", "error", err)
 		return fiber.NewError(fiber.StatusBadRequest)
 	}
 
 	projectModel, found, err := h.projectRepository.GetByID(fCtx, request.ProjectID)
 	if err != nil {
-		logger.FromContext(fCtx).Errorw("get project", "error", err)
+		logger.Errorw(fCtx, "get project", "error", err)
 		return fiber.NewError(fiber.StatusInternalServerError)
 	}
 	if !found || projectModel.OwnerID != auth.MustUserFromContext(fCtx).ID {
@@ -81,7 +81,7 @@ func (h *handler) getAllHandler(fCtx fiber.Ctx) error {
 
 	models, err := h.actionRepository.GetByProjectID(fCtx, request.ProjectID)
 	if err != nil {
-		logger.FromContext(fCtx).Errorw("get actions", "error", err)
+		logger.Errorw(fCtx, "get actions", "error", err)
 		return fiber.NewError(fiber.StatusInternalServerError)
 	}
 
@@ -106,13 +106,13 @@ func (h *handler) getHandler(fCtx fiber.Ctx) error {
 	}
 
 	if err := fCtx.Bind().URI(&request); err != nil {
-		logger.FromContext(fCtx).Warnw("get action, bad request", "error", err)
+		logger.Warnw(fCtx, "get action, bad request", "error", err)
 		return fiber.NewError(fiber.StatusBadRequest)
 	}
 
 	projectModel, found, err := h.projectRepository.GetByID(fCtx, request.ProjectID)
 	if err != nil {
-		logger.FromContext(fCtx).Errorw("get project", "error", err)
+		logger.Errorw(fCtx, "get project", "error", err)
 		return fiber.NewError(fiber.StatusInternalServerError)
 	}
 	if !found || projectModel.OwnerID != auth.MustUserFromContext(fCtx).ID {
@@ -121,7 +121,7 @@ func (h *handler) getHandler(fCtx fiber.Ctx) error {
 
 	model, found, err := h.actionRepository.GetByID(fCtx, request.ID)
 	if err != nil {
-		logger.FromContext(fCtx).Errorw("get action", "error", err)
+		logger.Errorw(fCtx, "get action", "error", err)
 		return fiber.NewError(fiber.StatusInternalServerError)
 	}
 	if !found || model.ProjectID != request.ProjectID {
@@ -146,13 +146,13 @@ func (h *handler) createHandler(fCtx fiber.Ctx) error {
 	}
 
 	if err := fCtx.Bind().All(&request); err != nil {
-		logger.FromContext(fCtx).Warnw("create action, bad request", "error", err)
+		logger.Warnw(fCtx, "create action, bad request", "error", err)
 		return fiber.NewError(fiber.StatusBadRequest)
 	}
 
 	projectModel, found, err := h.projectRepository.GetByID(fCtx, request.ProjectID)
 	if err != nil {
-		logger.FromContext(fCtx).Errorw("get project", "error", err)
+		logger.Errorw(fCtx, "get project", "error", err)
 		return fiber.NewError(fiber.StatusInternalServerError)
 	}
 	if !found || projectModel.OwnerID != auth.MustUserFromContext(fCtx).ID {
@@ -161,7 +161,7 @@ func (h *handler) createHandler(fCtx fiber.Ctx) error {
 
 	count, err := h.actionRepository.CountByProjectID(fCtx, request.ProjectID)
 	if err != nil {
-		logger.FromContext(fCtx).Errorw("get actions count", "error", err)
+		logger.Errorw(fCtx, "get actions count", "error", err)
 		return fiber.NewError(fiber.StatusInternalServerError)
 	}
 
@@ -180,7 +180,7 @@ func (h *handler) createHandler(fCtx fiber.Ctx) error {
 		UpdatedAt:  now,
 	})
 	if err != nil {
-		logger.FromContext(fCtx).Errorw("create action", "error", err)
+		logger.Errorw(fCtx, "create action", "error", err)
 		return fiber.NewError(fiber.StatusInternalServerError)
 	}
 
@@ -197,13 +197,13 @@ func (h *handler) updateHandler(fCtx fiber.Ctx) error {
 	}
 
 	if err := fCtx.Bind().All(&request); err != nil {
-		logger.FromContext(fCtx).Warnw("update action, bad request", "error", err)
+		logger.Warnw(fCtx, "update action, bad request", "error", err)
 		return fiber.NewError(fiber.StatusBadRequest)
 	}
 
 	projectModel, found, err := h.projectRepository.GetByID(fCtx, request.ProjectID)
 	if err != nil {
-		logger.FromContext(fCtx).Errorw("get project", "error", err)
+		logger.Errorw(fCtx, "get project", "error", err)
 		return fiber.NewError(fiber.StatusInternalServerError)
 	}
 	if !found || projectModel.OwnerID != auth.MustUserFromContext(fCtx).ID {
@@ -212,7 +212,7 @@ func (h *handler) updateHandler(fCtx fiber.Ctx) error {
 
 	model, found, err := h.actionRepository.GetByID(fCtx, request.ID)
 	if err != nil {
-		logger.FromContext(fCtx).Errorw("get action", "error", err)
+		logger.Errorw(fCtx, "get action", "error", err)
 		return fiber.NewError(fiber.StatusInternalServerError)
 	}
 	if !found || model.ProjectID != request.ProjectID {
@@ -223,7 +223,7 @@ func (h *handler) updateHandler(fCtx fiber.Ctx) error {
 
 	err = h.actionRepository.UpdateInfo(fCtx, request.ID, request.Name, request.Path, request.Methods)
 	if err != nil {
-		logger.FromContext(fCtx).Errorw("update action", "error", err)
+		logger.Errorw(fCtx, "update action", "error", err)
 		return fiber.NewError(fiber.StatusInternalServerError)
 	}
 
@@ -237,32 +237,32 @@ func (h *handler) uploadHandler(fCtx fiber.Ctx) error {
 	}
 
 	if err := fCtx.Bind().All(&request); err != nil {
-		logger.FromContext(fCtx).Warnw("upload action, bad request", "error", err)
+		logger.Warnw(fCtx, "upload action, bad request", "error", err)
 		return fiber.NewError(fiber.StatusBadRequest)
 	}
 
 	moduleFileHeader, err := fCtx.FormFile("module")
 	if err != nil {
-		logger.FromContext(fCtx).Warnw("upload action, bad request (file header)", "error", err)
+		logger.Warnw(fCtx, "upload action, bad request (file header)", "error", err)
 		return fiber.NewError(fiber.StatusBadRequest)
 	}
 
 	moduleFile, err := moduleFileHeader.Open()
 	if err != nil {
-		logger.FromContext(fCtx).Warnw("upload action, bad request (open file)", "error", err)
+		logger.Warnw(fCtx, "upload action, bad request (open file)", "error", err)
 		return fiber.NewError(fiber.StatusBadRequest)
 	}
 	defer func() { _ = moduleFile.Close() }()
 
 	moduleData, err := io.ReadAll(moduleFile)
 	if err != nil {
-		logger.FromContext(fCtx).Errorw("upload action, read module file", "error", err)
+		logger.Errorw(fCtx, "upload action, read module file", "error", err)
 		return fiber.NewError(fiber.StatusInternalServerError)
 	}
 
 	projectModel, found, err := h.projectRepository.GetByID(fCtx, request.ProjectID)
 	if err != nil {
-		logger.FromContext(fCtx).Errorw("get project", "error", err)
+		logger.Errorw(fCtx, "get project", "error", err)
 		return fiber.NewError(fiber.StatusInternalServerError)
 	}
 	userID := auth.MustUserFromContext(fCtx).ID
@@ -280,40 +280,40 @@ func (h *handler) uploadHandler(fCtx fiber.Ctx) error {
 
 	module, err := wape.NewPlugin(fCtx, env)
 	if err != nil {
-		logger.FromContext(fCtx).Warnw("instantiate module", "error", err)
+		logger.Warnw(fCtx, "instantiate module", "error", err)
 		return fiber.NewError(fiber.StatusInternalServerError)
 	}
 
 	if !module.FunctionExists("handler") {
-		logger.FromContext(fCtx).Warnw("handler function doesn't exist")
+		logger.Warnw(fCtx, "handler function doesn't exist")
 		return fiber.NewError(fiber.StatusBadRequest, "Handler function is missing")
 	}
 
 	ctx, err := h.tx.Begin(fCtx)
 	if err != nil {
-		logger.FromContext(fCtx).Errorw("begin transaction", "error", err)
+		logger.Errorw(fCtx, "begin transaction", "error", err)
 		return fiber.NewError(fiber.StatusInternalServerError)
 	}
 	defer func() { _ = h.tx.Rollback(ctx) }()
 
 	modulePath := path.Join(userID.String(), request.ProjectID.String(), request.ID.String()+".wasm")
 	if err = h.actionRepository.UpdateModulePath(ctx, request.ID, modulePath); err != nil {
-		logger.FromContext(fCtx).Errorw("update action module path", "error", err)
+		logger.Errorw(fCtx, "update action module path", "error", err)
 		return fiber.NewError(fiber.StatusInternalServerError)
 	}
 
 	if err = h.storage.Upload(ctx, h.cfg.ModuleBucket, modulePath, moduleData); err != nil {
-		logger.FromContext(fCtx).Errorw("upload action module", "error", err)
+		logger.Errorw(fCtx, "upload action module", "error", err)
 		return fiber.NewError(fiber.StatusInternalServerError)
 	}
 
 	if err = h.tx.Commit(ctx); err != nil {
-		logger.FromContext(fCtx).Errorw("commit transaction", "error", err)
+		logger.Errorw(fCtx, "commit transaction", "error", err)
 		return fiber.NewError(fiber.StatusInternalServerError)
 	}
 
 	if err = h.actionCache.Remove(fCtx, request.ID); err != nil {
-		logger.FromContext(fCtx).Errorw("remove action from cache", "id", request.ID, "error", err)
+		logger.Errorw(fCtx, "remove action from cache", "id", request.ID, "error", err)
 		return fiber.NewError(fiber.StatusInternalServerError)
 	}
 
@@ -327,13 +327,13 @@ func (h *handler) updateActionOrderHandler(fCtx fiber.Ctx) error {
 	}
 
 	if err := fCtx.Bind().All(&request); err != nil {
-		logger.FromContext(fCtx).Warnw("update action order, bad request", "error", err)
+		logger.Warnw(fCtx, "update action order, bad request", "error", err)
 		return fiber.NewError(fiber.StatusBadRequest)
 	}
 
 	projectModel, found, err := h.projectRepository.GetByID(fCtx, request.ProjectID)
 	if err != nil {
-		logger.FromContext(fCtx).Errorw("get project", "error", err)
+		logger.Errorw(fCtx, "get project", "error", err)
 		return fiber.NewError(fiber.StatusInternalServerError)
 	}
 	if !found || projectModel.OwnerID != auth.MustUserFromContext(fCtx).ID {
@@ -342,12 +342,12 @@ func (h *handler) updateActionOrderHandler(fCtx fiber.Ctx) error {
 
 	models, err := h.actionRepository.GetByProjectID(fCtx, request.ProjectID)
 	if err != nil {
-		logger.FromContext(fCtx).Errorw("get actions", "error", err)
+		logger.Errorw(fCtx, "get actions", "error", err)
 		return fiber.NewError(fiber.StatusInternalServerError)
 	}
 
 	if len(models) != len(request.IDs) {
-		logger.FromContext(fCtx).Warnw("update action order, length doesn't match",
+		logger.Warnw(fCtx, "update action order, length doesn't match",
 			"expected", len(models), "actual", len(request.IDs),
 		)
 		return fiber.NewError(fiber.StatusBadRequest)
@@ -356,14 +356,14 @@ func (h *handler) updateActionOrderHandler(fCtx fiber.Ctx) error {
 		if !slices.ContainsFunc(models, func(model action.Model) bool {
 			return model.ID == modelID
 		}) {
-			logger.FromContext(fCtx).Warnw("update action order, unexpected action", "id", modelID)
+			logger.Warnw(fCtx, "update action order, unexpected action", "id", modelID)
 			return fiber.NewError(fiber.StatusBadRequest)
 		}
 	}
 
 	err = h.actionRepository.UpdateOrder(fCtx, request.IDs)
 	if err != nil {
-		logger.FromContext(fCtx).Errorw("update action order", "error", err)
+		logger.Errorw(fCtx, "update action order", "error", err)
 		return fiber.NewError(fiber.StatusInternalServerError)
 	}
 
@@ -377,13 +377,13 @@ func (h *handler) deleteHandler(fCtx fiber.Ctx) error {
 	}
 
 	if err := fCtx.Bind().URI(&request); err != nil {
-		logger.FromContext(fCtx).Warnw("delete action, bad request", "error", err)
+		logger.Warnw(fCtx, "delete action, bad request", "error", err)
 		return fiber.NewError(fiber.StatusBadRequest)
 	}
 
 	projectModel, found, err := h.projectRepository.GetByID(fCtx, request.ProjectID)
 	if err != nil {
-		logger.FromContext(fCtx).Errorw("get project", "error", err)
+		logger.Errorw(fCtx, "get project", "error", err)
 		return fiber.NewError(fiber.StatusInternalServerError)
 	}
 	if !found || projectModel.OwnerID != auth.MustUserFromContext(fCtx).ID {
@@ -392,7 +392,7 @@ func (h *handler) deleteHandler(fCtx fiber.Ctx) error {
 
 	model, found, err := h.actionRepository.GetByID(fCtx, request.ID)
 	if err != nil {
-		logger.FromContext(fCtx).Errorw("get action", "error", err)
+		logger.Errorw(fCtx, "get action", "error", err)
 		return fiber.NewError(fiber.StatusInternalServerError)
 	}
 	if !found || model.ProjectID != request.ProjectID {
@@ -401,30 +401,30 @@ func (h *handler) deleteHandler(fCtx fiber.Ctx) error {
 
 	ctx, err := h.tx.Begin(fCtx)
 	if err != nil {
-		logger.FromContext(fCtx).Errorw("begin transaction", "error", err)
+		logger.Errorw(fCtx, "begin transaction", "error", err)
 		return fiber.NewError(fiber.StatusInternalServerError)
 	}
 	defer func() { _ = h.tx.Rollback(ctx) }()
 
 	if err = h.actionRepository.DeleteByID(ctx, model.ID); err != nil {
-		logger.FromContext(fCtx).Errorw("delete action", "error", err)
+		logger.Errorw(fCtx, "delete action", "error", err)
 		return fiber.NewError(fiber.StatusInternalServerError)
 	}
 
 	if model.ModulePath != "" {
 		if err = h.storage.Delete(ctx, h.cfg.ModuleBucket, model.ModulePath); err != nil {
-			logger.FromContext(fCtx).Errorw("delete action module", "error", err)
+			logger.Errorw(fCtx, "delete action module", "error", err)
 			return fiber.NewError(fiber.StatusInternalServerError)
 		}
 
 		if err = h.actionCache.Remove(fCtx, request.ID); err != nil {
-			logger.FromContext(fCtx).Errorw("remove action from cache", "id", request.ID, "error", err)
+			logger.Errorw(fCtx, "remove action from cache", "id", request.ID, "error", err)
 			return fiber.NewError(fiber.StatusInternalServerError)
 		}
 	}
 
 	if err = h.tx.Commit(ctx); err != nil {
-		logger.FromContext(fCtx).Errorw("commit transaction", "error", err)
+		logger.Errorw(fCtx, "commit transaction", "error", err)
 		return fiber.NewError(fiber.StatusInternalServerError)
 	}
 

@@ -44,7 +44,7 @@ func (h *handler) loginHandler(fCtx fiber.Ctx) error {
 
 	userModel, found, err := h.userRepository.GetByEmail(fCtx, request.Email)
 	if err != nil {
-		logger.FromContext(fCtx).Errorw("get user by email", "error", err)
+		logger.Errorw(fCtx, "get user by email", "error", err)
 		return fiber.NewError(fiber.StatusInternalServerError)
 	}
 	if !found {
@@ -59,11 +59,11 @@ func (h *handler) loginHandler(fCtx fiber.Ctx) error {
 		return fiber.NewError(fiber.StatusUnauthorized)
 	}
 	if needsRehash {
-		logger.FromContext(fCtx).Warnw("user needs to rehash password", "user-id", userModel.ID)
+		logger.Warnw(fCtx, "user needs to rehash password", "user-id", userModel.ID)
 	}
 
 	if err = h.auth.GenerateAndSetToken(fCtx, userModel); err != nil {
-		logger.FromContext(fCtx).Errorw("set token cookie", "error", err)
+		logger.Errorw(fCtx, "set token cookie", "error", err)
 		return fiber.NewError(fiber.StatusInternalServerError)
 	}
 
@@ -82,7 +82,7 @@ func (h *handler) registerHandler(fCtx fiber.Ctx) error {
 
 	hashedPassword, err := user.HashPassword(request.Password)
 	if err != nil {
-		logger.FromContext(fCtx).Errorw("hash password", "error", err)
+		logger.Errorw(fCtx, "hash password", "error", err)
 		return fiber.NewError(fiber.StatusInternalServerError)
 	}
 
@@ -101,12 +101,12 @@ func (h *handler) registerHandler(fCtx fiber.Ctx) error {
 			return fiber.NewError(fiber.StatusConflict, "Email already used")
 		}
 
-		logger.FromContext(fCtx).Errorw("create user", "error", err)
+		logger.Errorw(fCtx, "create user", "error", err)
 		return fiber.NewError(fiber.StatusInternalServerError)
 	}
 
 	if err = h.auth.GenerateAndSetToken(fCtx, userModel); err != nil {
-		logger.FromContext(fCtx).Errorw("set token cookie", "error", err)
+		logger.Errorw(fCtx, "set token cookie", "error", err)
 		return fiber.NewError(fiber.StatusInternalServerError)
 	}
 

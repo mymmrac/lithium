@@ -54,7 +54,7 @@ func (i *invoker) Middleware(fCtx fiber.Ctx) error {
 func (i *invoker) invoke(fCtx fiber.Ctx, subDomain string) error {
 	projectModel, found, err := i.projectRepository.GetBySubDomain(fCtx, subDomain)
 	if err != nil {
-		logger.FromContext(fCtx).Errorw("get project by subdomain", "sub-domain", subDomain, "error", err)
+		logger.Errorw(fCtx, "get project by subdomain", "sub-domain", subDomain, "error", err)
 		return fiber.NewError(fiber.StatusInternalServerError)
 	}
 	if !found {
@@ -63,7 +63,7 @@ func (i *invoker) invoke(fCtx fiber.Ctx, subDomain string) error {
 
 	actions, err := i.actionRepository.GetByProjectID(fCtx, projectModel.ID)
 	if err != nil {
-		logger.FromContext(fCtx).Errorw("get actions by project", "project-id", projectModel.ID, "error", err)
+		logger.Errorw(fCtx, "get actions by project", "project-id", projectModel.ID, "error", err)
 		return fiber.NewError(fiber.StatusInternalServerError)
 	}
 	if len(actions) == 0 {
@@ -88,14 +88,14 @@ func (i *invoker) invokeAction(fCtx fiber.Ctx, action action.Model) error {
 
 	module, ok, err := i.actionCache.Get(fCtx, action.ID)
 	if err != nil {
-		logger.FromContext(fCtx).Errorw("get action module from cache", "id", action.ID, "error", err)
+		logger.Errorw(fCtx, "get action module from cache", "id", action.ID, "error", err)
 		return fiber.NewError(fiber.StatusInternalServerError)
 	}
 	if !ok {
 		var moduleData []byte
 		moduleData, err = i.storage.Download(fCtx, i.cfg.ModuleBucket, action.ModulePath)
 		if err != nil {
-			logger.FromContext(fCtx).Errorw("download module", "module", action.ModulePath, "error", err)
+			logger.Errorw(fCtx, "download module", "module", action.ModulePath, "error", err)
 			return fiber.NewError(fiber.StatusInternalServerError)
 		}
 
@@ -110,7 +110,7 @@ func (i *invoker) invokeAction(fCtx fiber.Ctx, action action.Model) error {
 		var compiledPlugin *extism.CompiledPlugin
 		compiledPlugin, err = wape.NewCompiledPlugin(fCtx, env)
 		if err != nil {
-			logger.FromContext(fCtx).Errorw("compile module", "error", err)
+			logger.Errorw(fCtx, "compile module", "error", err)
 			return fiber.NewError(fiber.StatusInternalServerError)
 		}
 
@@ -124,7 +124,7 @@ func (i *invoker) invokeAction(fCtx fiber.Ctx, action action.Model) error {
 
 	plugin, err := module.CompiledPlugin.Instance(fCtx, module.PluginInstanceConfig)
 	if err != nil {
-		logger.FromContext(fCtx).Errorw("instantiate module", "error", err)
+		logger.Errorw(fCtx, "instantiate module", "error", err)
 		return fiber.NewError(fiber.StatusInternalServerError)
 	}
 
@@ -135,23 +135,23 @@ func (i *invoker) invokeAction(fCtx fiber.Ctx, action action.Model) error {
 		Body:    string(fCtx.Body()),
 	}).Marshal()
 	if err != nil {
-		logger.FromContext(fCtx).Errorw("marshal request", "error", err)
+		logger.Errorw(fCtx, "marshal request", "error", err)
 		return fiber.NewError(fiber.StatusInternalServerError)
 	}
 
 	exitCode, responseData, err := plugin.CallWithContext(fCtx, "handler", request)
 	if err != nil {
-		logger.FromContext(fCtx).Warnw("call module", "error", err)
+		logger.Warnw(fCtx, "call module", "error", err)
 		return fiber.NewError(fiber.StatusInternalServerError)
 	}
 	if exitCode != 0 {
-		logger.FromContext(fCtx).Warnw("call module", "exit-code", exitCode)
+		logger.Warnw(fCtx, "call module", "exit-code", exitCode)
 		return fiber.NewError(fiber.StatusInternalServerError)
 	}
 
 	var response protocol.Response
 	if err = response.Unmarshal(responseData); err != nil {
-		logger.FromContext(fCtx).Warnw("unmarshal response", "error", err)
+		logger.Warnw(fCtx, "unmarshal response", "error", err)
 		return fiber.NewError(fiber.StatusInternalServerError)
 	}
 	if response.StatusCode == 0 {
