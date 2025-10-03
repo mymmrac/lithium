@@ -20,8 +20,8 @@
         </form>
 
         <template x-if="results.length > 0">
-            <div class="overflow-x-auto">
-                <table class="min-w-full text-sm text-left text-gray-600 border border-gray-200 rounded-lg overflow-hidden">
+            <div class="overflow-x-auto border border-gray-200 rounded-lg">
+                <table class="min-w-full text-sm text-left text-gray-600 overflow-hidden">
                     <thead class="bg-gray-200 text-gray-700 uppercase text-xs">
                     <tr>
                         <th class="px-4 py-2">Name</th>
@@ -39,8 +39,8 @@
                             <td class="px-4 py-2" x-text="result.country"></td>
                             <td class="px-4 py-2" x-text="result.latitude"></td>
                             <td class="px-4 py-2" x-text="result.longitude"></td>
-                            <td class="px-4 py-2" x-text="result.temperature.toFixed(2) + ' °C'"></td>
-                            <td class="px-4 py-2" x-text="result.perception.toFixed(2) + '%'"></td>
+                            <td class="px-4 py-2" x-text="result.temperature + ' °C'"></td>
+                            <td class="px-4 py-2" x-text="result.perception + '%'"></td>
                         </tr>
                     </template>
                     </tbody>

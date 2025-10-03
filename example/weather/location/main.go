@@ -10,11 +10,14 @@ import (
 
 	"github.com/extism/go-pdk"
 
-	"github.com/mymmrac/lithium/pkg/module/protocol"
+	"github.com/mymmrac/lithium/pkg/plugin/network"
+	"github.com/mymmrac/lithium/pkg/plugin/protocol"
 )
 
 //go:wasmexport handler
 func Handle() {
+	network.PatchDefaultHTTPClient()
+
 	var request protocol.Request
 	if err := pdk.InputJSON(&request); err != nil {
 		pdk.SetError(fmt.Errorf("unmarshal request: %w", err))

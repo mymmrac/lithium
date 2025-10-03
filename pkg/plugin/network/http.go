@@ -13,7 +13,9 @@ import (
 	"github.com/mymmrac/wape/plugin/net"
 )
 
+// TODO: Return error
 func HTTPClient() *http.Client {
+	// TODO: Read from env
 	caPEM, err := os.ReadFile("/certs/ca-certificates.crt")
 	if err != nil {
 		pdk.SetError(fmt.Errorf("reading CA cert: %w", err))

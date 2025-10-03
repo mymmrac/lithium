@@ -278,6 +278,11 @@ func (h *handler) uploadHandler(fCtx fiber.Ctx) error {
 		},
 	}
 
+	// TODO: Take from config
+	env.NetworkEnabled = true
+	env.NetworksAllowAll = true
+	env.NetworkAddressesAllowAll = true
+
 	module, err := wape.NewPlugin(fCtx, env)
 	if err != nil {
 		logger.Warnw(fCtx, "instantiate module", "error", err)

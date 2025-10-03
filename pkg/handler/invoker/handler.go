@@ -112,6 +112,14 @@ func (i *invoker) invokeAction(fCtx fiber.Ctx, action action.Model) error {
 		env.NetworksAllowAll = true
 		env.NetworkAddressesAllowAll = true
 
+		env.WallTimeFromHost = true
+		env.NanoTimeFromHost = true
+
+		// TODO: Add env
+		env.FSAllowedPaths = map[string]string{
+			"ro:/etc/ssl/certs": "/certs",
+		}
+
 		var compiledPlugin *extism.CompiledPlugin
 		compiledPlugin, err = wape.NewCompiledPlugin(fCtx, env)
 		if err != nil {

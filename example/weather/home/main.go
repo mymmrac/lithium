@@ -8,7 +8,7 @@ import (
 
 	"github.com/extism/go-pdk"
 
-	"github.com/mymmrac/lithium/pkg/module/protocol"
+	"github.com/mymmrac/lithium/pkg/plugin/protocol"
 )
 
 //go:embed index.gohtml
