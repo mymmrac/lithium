@@ -1,8 +1,10 @@
 package invoker
 
 import (
+	"maps"
 	"path"
 	"path/filepath"
+	"slices"
 
 	extism "github.com/extism/go-sdk"
 	"github.com/gofiber/fiber/v3"
@@ -110,21 +112,30 @@ func (i *invoker) invokeAction(fCtx fiber.Ctx, action action.Model) error {
 			},
 		}
 
-		// TODO: Take from config
-		env.NetworkEnabled = true
+		env.EnvsMap = maps.Clone(action.Config.Envs)
+		env.Args = slices.Clone(action.Config.Args)
+
+		env.NetworkEnabled = action.Config.Network
+
 		env.NetworksAllowAll = true
 		env.NetworkAddressesAllowAll = true
 
 		env.WallTimeFromHost = true
 		env.NanoTimeFromHost = true
+		env.NanoSleepFromHost = true
 
-		const pluginCADir = "/certs"
-		const caFile = "/etc/ssl/certs/ca-certificates.crt"
-		env.EnvsMap = map[string]string{
-			"LITHIUM_CA_CERT_FILE": path.Join(pluginCADir, filepath.Base(caFile)),
-		}
-		env.FSAllowedPaths = map[string]string{
-			"ro:" + filepath.Dir(caFile): pluginCADir,
+		env.RandSourceFromHost = true
+
+		if action.Config.Network {
+			const pluginCADir = "/certs"
+			const caFile = "/etc/ssl/certs/ca-certificates.crt"
+			if env.EnvsMap == nil {
+				env.EnvsMap = make(map[string]string, 1)
+			}
+			env.EnvsMap["LITHIUM_CA_CERT_FILE"] = path.Join(pluginCADir, filepath.Base(caFile))
+			env.FSAllowedPaths = map[string]string{
+				"ro:" + filepath.Dir(caFile): pluginCADir,
+			}
 		}
 
 		var compiledPlugin *extism.CompiledPlugin

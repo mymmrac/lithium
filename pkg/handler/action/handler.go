@@ -270,6 +270,15 @@ func (h *handler) uploadHandler(fCtx fiber.Ctx) error {
 		return fiber.NewError(fiber.StatusNotFound)
 	}
 
+	model, found, err := h.actionRepository.GetByID(fCtx, request.ID)
+	if err != nil {
+		logger.Errorw(fCtx, "get action", "error", err)
+		return fiber.NewError(fiber.StatusInternalServerError)
+	}
+	if !found || model.ProjectID != request.ProjectID {
+		return fiber.NewError(fiber.StatusNotFound)
+	}
+
 	env := wape.NewEnvironment()
 	env.Modules = []wape.ModuleData{
 		{
@@ -278,10 +287,7 @@ func (h *handler) uploadHandler(fCtx fiber.Ctx) error {
 		},
 	}
 
-	// TODO: Take from config
-	env.NetworkEnabled = true
-	env.NetworksAllowAll = true
-	env.NetworkAddressesAllowAll = true
+	env.NetworkEnabled = model.Config.Network
 
 	module, err := wape.NewPlugin(fCtx, env)
 	if err != nil {

@@ -21,6 +21,7 @@ type Repository interface {
 	CountByProjectID(ctx context.Context, projectID id.ID) (int, error)
 	UpdateOrder(ctx context.Context, ids []id.ID) error
 	UpdateModulePath(ctx context.Context, id id.ID, modulePath string) error
+	UpdateConfig(ctx context.Context, id id.ID, config ModuleConfig) error
 }
 
 type repository struct {
@@ -131,6 +132,18 @@ func (r *repository) UpdateModulePath(ctx context.Context, id id.ID, modulePath 
 	_, err := r.tx.Extract(ctx).NewUpdate().
 		Model((*Model)(nil)).
 		Set("module_path = ?", modulePath).
+		Where("id = ?", id).
+		Exec(ctx)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func (r *repository) UpdateConfig(ctx context.Context, id id.ID, config ModuleConfig) error {
+	_, err := r.tx.Extract(ctx).NewUpdate().
+		Model((*Model)(nil)).
+		Set("config = ?", config).
 		Where("id = ?", id).
 		Exec(ctx)
 	if err != nil {
