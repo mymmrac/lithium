@@ -5,7 +5,7 @@ tmp_dir = "bin"
 [build]
   args_bin = []
   bin = "./bin/lithium"
-  cmd = "go build -o ./bin/lithium ."
+  cmd = "go build -tags auto_load_env -o ./bin/lithium ."
   delay = 500
   exclude_dir = ["bin", "vendor", "testdata"]
   exclude_file = []

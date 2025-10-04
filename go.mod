@@ -8,6 +8,7 @@ require (
 	github.com/gofiber/fiber/v3 v3.0.0-rc.1
 	github.com/gofiber/template/html/v2 v2.1.3
 	github.com/golang-jwt/jwt/v5 v5.3.0
+	github.com/joho/godotenv v1.5.1
 	github.com/minio/minio-go/v7 v7.0.95
 	github.com/mymmrac/wape v0.0.0-20250913203235-3223c0f05867
 	github.com/mymmrac/wape/plugin v0.0.0-20250913203235-3223c0f05867
