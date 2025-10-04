@@ -1,12 +1,13 @@
 package invoker
 
 import (
+	"context"
+	"fmt"
 	"maps"
 	"path"
 	"path/filepath"
 	"slices"
 
-	extism "github.com/extism/go-sdk"
 	"github.com/gofiber/fiber/v3"
 	"github.com/mymmrac/wape"
 
@@ -97,59 +98,10 @@ func (i *invoker) invokeAction(fCtx fiber.Ctx, action action.Model) error {
 		return fiber.NewError(fiber.StatusInternalServerError)
 	}
 	if !ok {
-		var moduleData []byte
-		moduleData, err = i.storage.Download(fCtx, i.cfg.ModuleBucket, action.ModulePath)
+		module, err = i.compileModule(fCtx, action)
 		if err != nil {
-			logger.Errorw(fCtx, "download module", "module", action.ModulePath, "error", err)
+			logger.Errorw(fCtx, "compile module", "id", action.ID, "error", err)
 			return fiber.NewError(fiber.StatusInternalServerError)
-		}
-
-		env := wape.NewEnvironment()
-		env.Modules = []wape.ModuleData{
-			{
-				Name: "main",
-				Data: moduleData,
-			},
-		}
-
-		env.EnvsMap = maps.Clone(action.Config.Envs)
-		env.Args = slices.Clone(action.Config.Args)
-
-		env.NetworkEnabled = action.Config.Network
-
-		env.NetworksAllowAll = true
-		env.NetworkAddressesAllowAll = true
-
-		env.WallTimeFromHost = true
-		env.NanoTimeFromHost = true
-		env.NanoSleepFromHost = true
-
-		env.RandSourceFromHost = true
-
-		if action.Config.Network {
-			const pluginCADir = "/certs"
-			const caFile = "/etc/ssl/certs/ca-certificates.crt"
-			if env.EnvsMap == nil {
-				env.EnvsMap = make(map[string]string, 1)
-			}
-			env.EnvsMap["LITHIUM_CA_CERT_FILE"] = path.Join(pluginCADir, filepath.Base(caFile))
-			env.FSAllowedPaths = map[string]string{
-				"ro:" + filepath.Dir(caFile): pluginCADir,
-			}
-		}
-
-		var compiledPlugin *extism.CompiledPlugin
-		compiledPlugin, err = wape.NewCompiledPlugin(fCtx, env)
-		if err != nil {
-			logger.Errorw(fCtx, "compile module", "error", err)
-			return fiber.NewError(fiber.StatusInternalServerError)
-		}
-
-		module.CompiledPlugin = compiledPlugin
-		module.PluginInstanceConfig = env.MakePluginInstanceConfig()
-
-		if err = i.actionCache.Set(fCtx, action.ID, module); err != nil {
-			logger.Warnw(fCtx, "set action module cache", "error", err)
 		}
 	}
 
@@ -199,4 +151,61 @@ func (i *invoker) invokeAction(fCtx fiber.Ctx, action action.Model) error {
 	resp.SetBodyString(response.Body)
 
 	return nil
+}
+
+func (i *invoker) compileModule(ctx context.Context, model action.Model) (action.Module, error) {
+	moduleData, err := i.storage.Download(ctx, i.cfg.ModuleBucket, model.ModulePath)
+	if err != nil {
+		return action.Module{}, fmt.Errorf("download module: %w", err)
+	}
+
+	env := wape.NewEnvironment()
+	env.Modules = []wape.ModuleData{
+		{
+			Name: "main",
+			Data: moduleData,
+		},
+	}
+
+	env.EnvsMap = maps.Clone(model.Config.Envs)
+	env.Args = slices.Clone(model.Config.Args)
+
+	env.NetworkEnabled = model.Config.Network
+
+	env.NetworksAllowAll = true
+	env.NetworkAddressesAllowAll = true
+
+	env.WallTimeFromHost = true
+	env.NanoTimeFromHost = true
+	env.NanoSleepFromHost = true
+
+	env.RandSourceFromHost = true
+
+	if model.Config.Network {
+		const pluginCADir = "/certs"
+		const caFile = "/etc/ssl/certs/ca-certificates.crt"
+		if env.EnvsMap == nil {
+			env.EnvsMap = make(map[string]string, 1)
+		}
+		env.EnvsMap["LITHIUM_CA_CERT_FILE"] = path.Join(pluginCADir, filepath.Base(caFile))
+		env.FSAllowedPaths = map[string]string{
+			"ro:" + filepath.Dir(caFile): pluginCADir,
+		}
+	}
+
+	compiledPlugin, err := wape.NewCompiledPlugin(ctx, env)
+	if err != nil {
+		return action.Module{}, fmt.Errorf("compile plugin: %w", err)
+	}
+
+	module := action.Module{
+		CompiledPlugin:       compiledPlugin,
+		PluginInstanceConfig: env.MakePluginInstanceConfig(),
+	}
+
+	if err = i.actionCache.Set(ctx, model.ID, module); err != nil {
+		logger.Warnw(ctx, "set action module cache", "error", err)
+	}
+
+	return module, nil
 }
