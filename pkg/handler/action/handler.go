@@ -48,7 +48,8 @@ func RegisterHandlers(
 	api.Post("/order", h.updateActionOrderHandler)
 	api.Get("/:actionID", h.getHandler)
 	api.Put("/:actionID", h.updateHandler)
-	api.Post("/:actionID/upload", h.uploadHandler)
+	api.Put("/:actionID/upload", h.uploadHandler)
+	api.Put("/:actionID/config", h.updateConfigHandler)
 	api.Delete("/:actionID", h.deleteHandler)
 }
 
@@ -236,7 +237,7 @@ func (h *handler) uploadHandler(fCtx fiber.Ctx) error {
 		ID        id.ID `uri:"actionID"  validate:"required"`
 	}
 
-	if err := fCtx.Bind().All(&request); err != nil {
+	if err := fCtx.Bind().URI(&request); err != nil {
 		logger.Warnw(fCtx, "upload action, bad request", "error", err)
 		return fiber.NewError(fiber.StatusBadRequest)
 	}
@@ -320,6 +321,57 @@ func (h *handler) uploadHandler(fCtx fiber.Ctx) error {
 
 	if err = h.tx.Commit(ctx); err != nil {
 		logger.Errorw(fCtx, "commit transaction", "error", err)
+		return fiber.NewError(fiber.StatusInternalServerError)
+	}
+
+	if err = h.actionCache.Remove(fCtx, request.ID); err != nil {
+		logger.Errorw(fCtx, "remove action from cache", "id", request.ID, "error", err)
+		return fiber.NewError(fiber.StatusInternalServerError)
+	}
+
+	return fCtx.JSON(fiber.Map{"ok": true})
+}
+
+func (h *handler) updateConfigHandler(fCtx fiber.Ctx) error {
+	var request struct {
+		ProjectID id.ID             `uri:"projectID" validate:"required"`
+		ID        id.ID             `uri:"actionID"  validate:"required"`
+		Envs      map[string]string `json:"envs"     validate:"-"`
+		Args      []string          `json:"args"     validate:"-"`
+		Network   bool              `json:"network"  validate:"-"`
+	}
+
+	if err := fCtx.Bind().All(&request); err != nil {
+		logger.Warnw(fCtx, "upload action, bad request", "error", err)
+		return fiber.NewError(fiber.StatusBadRequest)
+	}
+
+	projectModel, found, err := h.projectRepository.GetByID(fCtx, request.ProjectID)
+	if err != nil {
+		logger.Errorw(fCtx, "get project", "error", err)
+		return fiber.NewError(fiber.StatusInternalServerError)
+	}
+	if !found || projectModel.OwnerID != auth.MustUserFromContext(fCtx).ID {
+		return fiber.NewError(fiber.StatusNotFound)
+	}
+
+	model, found, err := h.actionRepository.GetByID(fCtx, request.ID)
+	if err != nil {
+		logger.Errorw(fCtx, "get action", "error", err)
+		return fiber.NewError(fiber.StatusInternalServerError)
+	}
+	if !found || model.ProjectID != request.ProjectID {
+		return fiber.NewError(fiber.StatusNotFound)
+	}
+
+	config := action.ModuleConfig{
+		Envs:    request.Envs,
+		Args:    request.Args,
+		Network: request.Network,
+	}
+
+	if err = h.actionRepository.UpdateConfig(fCtx, request.ID, config); err != nil {
+		logger.Errorw(fCtx, "update action config", "error", err)
 		return fiber.NewError(fiber.StatusInternalServerError)
 	}
 

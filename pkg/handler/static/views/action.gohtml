@@ -254,7 +254,7 @@
                 this.uploadInProgress = true
                 try {
                     const res = await fetch(`/api/project/${ this.projectId }/action/${ this.actionId }/upload`, {
-                        method: "POST",
+                        method: "PUT",
                         body: formData,
                     })
 
