@@ -78,7 +78,7 @@ func (i *invoker) invoke(fCtx fiber.Ctx, subDomain string) error {
 
 	app := fiber.New()
 	for _, actionModel := range actions {
-		app.Route(actionModel.Path).Add(actionModel.Methods, func(fCtx fiber.Ctx) error {
+		app.Add(actionModel.Methods, actionModel.Path, func(fCtx fiber.Ctx) error {
 			return i.invokeAction(fCtx, actionModel)
 		})
 	}
