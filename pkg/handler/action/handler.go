@@ -53,14 +53,6 @@ func RegisterHandlers(
 	api.Delete("/:actionID", h.deleteHandler)
 }
 
-type actionInfo struct {
-	ID             id.ID    `json:"id"`
-	Name           string   `json:"name"`
-	Path           string   `json:"path"`
-	Methods        []string `json:"methods"`
-	ModuleUploaded bool     `json:"moduleUploaded"`
-}
-
 func (h *handler) getAllHandler(fCtx fiber.Ctx) error {
 	var request struct {
 		ProjectID id.ID `uri:"projectID" validate:"required"`
@@ -86,14 +78,20 @@ func (h *handler) getAllHandler(fCtx fiber.Ctx) error {
 		return fiber.NewError(fiber.StatusInternalServerError)
 	}
 
+	type actionInfo struct {
+		ID      id.ID    `json:"id"`
+		Name    string   `json:"name"`
+		Path    string   `json:"path"`
+		Methods []string `json:"methods"`
+	}
+
 	response := make([]actionInfo, len(models))
 	for i, model := range models {
 		response[i] = actionInfo{
-			ID:             model.ID,
-			Name:           model.Name,
-			Path:           model.Path,
-			Methods:        model.Methods,
-			ModuleUploaded: model.ModulePath != "",
+			ID:      model.ID,
+			Name:    model.Name,
+			Path:    model.Path,
+			Methods: model.Methods,
 		}
 	}
 
@@ -129,12 +127,32 @@ func (h *handler) getHandler(fCtx fiber.Ctx) error {
 		return fiber.NewError(fiber.StatusNotFound)
 	}
 
+	type actionConfig struct {
+		Envs    map[string]string `json:"envs,omitempty"`
+		Args    []string          `json:"args,omitempty"`
+		Network bool              `json:"network,omitempty"`
+	}
+
+	type actionInfo struct {
+		ID             id.ID        `json:"id"`
+		Name           string       `json:"name"`
+		Path           string       `json:"path"`
+		Methods        []string     `json:"methods"`
+		ModuleUploaded bool         `json:"moduleUploaded"`
+		Config         actionConfig `json:"config"`
+	}
+
 	return fCtx.JSON(&actionInfo{
 		ID:             model.ID,
 		Name:           model.Name,
 		Path:           model.Path,
 		Methods:        model.Methods,
 		ModuleUploaded: model.ModulePath != "",
+		Config: actionConfig{
+			Envs:    model.Config.Envs,
+			Args:    model.Config.Args,
+			Network: model.Config.Network,
+		},
 	})
 }
 

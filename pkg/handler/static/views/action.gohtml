@@ -224,7 +224,7 @@
     <!-- Action Configuration Section -->
     <div class="bg-white/50 backdrop-blur-sm rounded-2xl p-8 shadow-lg border border-white/20">
         <div class="flex items-center gap-4 mb-6">
-            <div class="w-12 h-12 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-xl flex items-center justify-center">
+            <div class="w-12 h-12 bg-gradient-to-br from-orange-500 to-amber-400 rounded-xl flex items-center justify-center">
                 <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                           d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path>
@@ -244,7 +244,7 @@
                 <div class="flex items-center justify-between">
                     <h4 class="text-lg font-semibold text-gray-800">Arguments</h4>
                     <button @click="addArgument()" type="button"
-                            class="px-4 py-2 bg-gradient-to-r from-blue-500 to-indigo-600 text-white rounded-lg hover:shadow-lg transform hover:-translate-y-0.5 transition-all duration-200 text-sm font-medium cursor-pointer">
+                            class="px-4 py-2 bg-gradient-to-r from-emerald-500 to-teal-600 text-white rounded-lg hover:shadow-lg transform hover:-translate-y-0.5 transition-all duration-200 text-sm font-medium cursor-pointer">
                         <svg class="w-4 h-4 inline mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                   d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
@@ -305,7 +305,7 @@
                 <div class="flex items-center justify-between">
                     <h4 class="text-lg font-semibold text-gray-800">Environment Variables</h4>
                     <button @click="addEnvironmentVariable()" type="button"
-                            class="px-4 py-2 bg-gradient-to-r from-green-500 to-emerald-600 text-white rounded-lg hover:shadow-lg transform hover:-translate-y-0.5 transition-all duration-200 text-sm font-medium cursor-pointer">
+                            class="px-4 py-2 bg-gradient-to-r from-emerald-500 to-teal-600 text-white rounded-lg hover:shadow-lg transform hover:-translate-y-0.5 transition-all duration-200 text-sm font-medium cursor-pointer">
                         <svg class="w-4 h-4 inline mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                   d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
@@ -363,7 +363,7 @@
             <!-- Save Configuration Button -->
             <div class="pt-6 border-t border-gray-200">
                 <button @click="saveConfiguration()" :disabled="saveInProgress"
-                        class="group relative w-full px-6 py-4 bg-gradient-to-r from-purple-500 to-indigo-600 rounded-xl shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 transition-all duration-200 text-white font-semibold disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none cursor-pointer">
+                        class="group relative w-full px-6 py-4 bg-gradient-to-r from-emerald-500 to-teal-600 rounded-xl shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 transition-all duration-200 text-white font-semibold disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none cursor-pointer">
                     <span class="relative z-10 flex items-center justify-center gap-2">
                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -532,8 +532,8 @@
 
     function actionConfigForm() {
         return {
-            projectId: "{{ .ProjectId }}",
-            actionId: "{{ .ActionId }}",
+            projectId: "",
+            actionId: "",
 
             config: {
                 args: [],
@@ -546,23 +546,21 @@
             configSuccess: "",
 
             init() {
-                this.loadConfiguration()
-            },
-
-            async loadConfiguration() {
-                try {
-                    const res = await fetch(`/api/project/${ this.projectId }/action/${ this.actionId }/config`)
-                    if (res.ok) {
-                        const data = await res.json()
-                        this.config = {
-                            args: data.args || [],
-                            envs: data.envs || {},
-                            network: data.network || false,
-                        }
+                this.$watch("project", value => {
+                    this.projectId = value.id
+                })
+                this.$watch("action", value => {
+                    this.actionId = value.id
+                    if (value.config.envs) {
+                        this.config.envs = value.config.envs
                     }
-                } catch (err) {
-                    console.log("No existing configuration found")
-                }
+                    if (value.config.args) {
+                        this.config.args = value.config.args
+                    }
+                    if (value.config.network) {
+                        this.config.network = value.config.network
+                    }
+                })
             },
 
             addArgument() {
