@@ -3,6 +3,7 @@ package main
 
 import (
 	"fmt"
+	"os"
 	"strconv"
 
 	"github.com/extism/go-pdk"
@@ -23,6 +24,17 @@ func Handle() {
 		Headers:    nil,
 		Body:       "",
 	}
+
+	response.Body += "Arguments:\n"
+	for i, arg := range os.Args {
+		response.Body += "\t" + strconv.Itoa(i) + ": " + strconv.Quote(arg) + "\n"
+	}
+	response.Body += "Environment variables:\n"
+	for _, env := range os.Environ() {
+		response.Body += "\t" + strconv.Quote(env) + "\n"
+	}
+
+	response.Body += "\n"
 
 	response.Body += "URL: " + strconv.Quote(request.URL) + "\n"
 	response.Body += "Method: " + strconv.Quote(request.Method) + "\n"
