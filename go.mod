@@ -10,8 +10,8 @@ require (
 	github.com/golang-jwt/jwt/v5 v5.3.0
 	github.com/joho/godotenv v1.5.1
 	github.com/minio/minio-go/v7 v7.0.95
-	github.com/mymmrac/wape v0.0.0-20250913203235-3223c0f05867
-	github.com/mymmrac/wape/plugin v0.0.0-20250913203235-3223c0f05867
+	github.com/mymmrac/wape v0.0.0-20251005121638-35dc5f6a6687
+	github.com/mymmrac/wape/plugin v0.0.0-20251005121638-35dc5f6a6687
 	github.com/rathil/rdi v1.2.1
 	github.com/sony/sonyflake v1.3.0
 	github.com/spf13/cobra v1.10.1
