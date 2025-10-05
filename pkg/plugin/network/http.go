@@ -12,7 +12,7 @@ import (
 	"github.com/mymmrac/wape/plugin/net"
 )
 
-func HTTPClient() (*http.Client, error) {
+func TLSConfig() (*tls.Config, error) {
 	caPEM, err := os.ReadFile(os.Getenv("LITHIUM_CA_CERT_FILE"))
 	if err != nil {
 		return nil, fmt.Errorf("reading CA cert: %w", err)
@@ -23,10 +23,21 @@ func HTTPClient() (*http.Client, error) {
 		return nil, fmt.Errorf("unable to append CA cert")
 	}
 
+	return &tls.Config{
+		RootCAs: certPool,
+	}, nil
+}
+
+func HTTPClient() (*http.Client, error) {
+	tlsConfig, err := TLSConfig()
+	if err != nil {
+		return nil, fmt.Errorf("create TLS config: %w", err)
+	}
+
 	return &http.Client{
 		Transport: &http.Transport{
 			DialContext:     net.DefaultDialer.DialContext,
-			TLSClientConfig: &tls.Config{RootCAs: certPool},
+			TLSClientConfig: tlsConfig,
 		},
 	}, nil
 }
@@ -34,7 +45,7 @@ func HTTPClient() (*http.Client, error) {
 func PatchDefaultHTTPClient() error {
 	client, err := HTTPClient()
 	if err != nil {
-		return err
+		return fmt.Errorf("create HTTP client: %w", err)
 	}
 
 	http.DefaultClient = client
