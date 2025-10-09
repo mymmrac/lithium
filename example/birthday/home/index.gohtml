@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8"/>
+    <title>🎂 Birthday Bot</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://accounts.google.com/gsi/client"></script>
+    <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
+</head>
+<body class="bg-gray-100 min-h-screen flex items-center justify-center p-6">
+    <div id="root" x-data="birthdayApp()" class="w-full max-w-3xl bg-white shadow-xl rounded-2xl p-6">
+        <div class="flex items-center justify-between mb-4">
+            <h1 class="text-2xl font-bold text-gray-800">🎉 Create a Birthday Message</h1>
+            <template x-if="!user">
+                <div id="g_id_signin" class="g_id_signin"
+                     data-type="standard"
+                     data-shape="rectangular"
+                     data-theme="filled_blue"
+                     data-text="signin_with"
+                     data-size="medium"
+                     data-logo_alignment="left">
+                </div>
+            </template>
+            <template x-if="user">
+                <div class="flex items-center gap-3">
+                    <span class="text-sm text-gray-600" x-text="user.email"></span>
+                    <button @click="logout()" class="px-3 py-1.5 text-sm bg-gray-200 rounded-lg hover:bg-gray-300">
+                        Logout
+                    </button>
+                </div>
+            </template>
+        </div>
+
+        <template x-if="user">
+            <div>
+                <form @submit.prevent="await createMessage()" class="space-y-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700">Recipient Name</label>
+                        <input type="text" x-model="recipient" placeholder="e.g. Alex"
+                               class="mt-1 w-full border rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500 outline-none"/>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700">Age (optional)</label>
+                        <input type="number" x-model.number="age" min="0"
+                               class="mt-1 w-full border rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500 outline-none"/>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700">Tone</label>
+                        <select x-model="tone" class="mt-1 w-full border rounded-lg px-4 py-2">
+                            <option value="heartfelt">Heartfelt</option>
+                            <option value="funny">Funny</option>
+                            <option value="formal">Formal</option>
+                            <option value="short">Short & Sweet</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700">Additional details (optional)</label>
+                        <textarea x-model="details" rows="3"
+                                  class="mt-1 w-full border rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500 outline-none"
+                                  placeholder="Inside jokes, hobbies, memories..."></textarea>
+                    </div>
+                    <button type="submit" :disabled="loading"
+                            class="px-4 py-2 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 transition disabled:opacity-50">
+                        <span x-show="!loading">Generate</span>
+                        <span x-show="loading">Generating...</span>
+                    </button>
+                </form>
+
+                <template x-if="message">
+                    <div class="mt-6 p-4 border rounded-xl bg-gray-50">
+                        <h2 class="font-semibold mb-2">Suggested Message</h2>
+                        <pre class="whitespace-pre-wrap" x-text="message"></pre>
+                    </div>
+                </template>
+            </div>
+        </template>
+
+        <template x-if="!user">
+            <div class="text-gray-600">Please sign in to generate a personalized message.</div>
+        </template>
+    </div>
+
+    <script>
+        function birthdayApp() {
+            return {
+                user: null,
+                recipient: "",
+                age: "",
+                tone: "heartfelt",
+                details: "",
+                loading: false,
+                message: "",
+
+                async logout() {
+                    try {
+                        await fetch("/api/logout", {method: "POST"})
+                        window.location.reload()
+                    } catch (e) {
+                        console.error("logout", e)
+                    }
+                },
+
+                async createMessage() {
+                    if (!this.recipient.trim()) {
+                        return
+                    }
+
+                    this.loading = true
+                    this.message = ""
+                    try {
+                        const resp = await fetch("/api/chat", {
+                            method: "POST",
+                            headers: {"Content-Type": "application/json"},
+                            body: JSON.stringify({
+                                recipient: this.recipient,
+                                age: this.age || null,
+                                tone: this.tone,
+                                details: this.details || "",
+                            }),
+                        })
+                        if (!resp.ok) {
+                            throw new Error("request failed")
+                        }
+
+                        const data = await resp.json()
+                        this.message = data.message
+                    } catch (e) {
+                        alert("Error generating message")
+                        console.error(e)
+                    } finally {
+                        this.loading = false
+                    }
+                },
+            }
+        }
+    </script>
+
+    <script>
+        window.addEventListener("DOMContentLoaded", async () => {
+            // Initialize Google Identity Services
+            const clientId = "{{ .ClientID }}"
+            if (!clientId) {
+                console.error("No client ID provided!")
+                return
+            }
+
+            google.accounts.id.initialize({
+                client_id: clientId,
+                callback: async (response) => {
+                    try {
+                        const session = await fetch("/api/session", {
+                            method: "POST",
+                            headers: {"Content-Type": "application/json"},
+                            body: JSON.stringify({id_token: response.credential}),
+                        })
+                        if (!session.ok) {
+                            throw new Error("error creating session")
+                        }
+
+                        const me = await fetch("/api/me")
+                        if (!me.ok) {
+                            throw new Error("error getting me")
+                        }
+
+                        const u = await me.json()
+                        const root = document.getElementById("root")
+                        if (root && root._x_dataStack[0]) {
+                            root._x_dataStack[0].$data.user = u
+                        }
+                    } catch (e) {
+                        console.error(e)
+                    }
+                },
+            })
+
+            google.accounts.id.renderButton(document.getElementById("g_id_signin"), {
+                theme: "outline",
+                size: "medium",
+            })
+        })
+    </script>
+</body>
+</html>

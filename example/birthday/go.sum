@@ -1,0 +1,8 @@
+github.com/extism/go-pdk v1.1.3 h1:hfViMPWrqjN6u67cIYRALZTZLk/enSPpNKa+rZ9X2SQ=
+github.com/extism/go-pdk v1.1.3/go.mod h1:Gz+LIU/YCKnKXhgge8yo5Yu1F/lbv7KtKFkiCSzW/P4=
+github.com/golang-jwt/jwt/v5 v5.3.0 h1:pv4AsKCKKZuqlgs5sUmn4x8UlGa0kEVt/puTpKx9vvo=
+github.com/golang-jwt/jwt/v5 v5.3.0/go.mod h1:fxCRLWMO43lRc8nhHWY6LGqRcf+1gQWArsqaEUEa5bE=
+github.com/mymmrac/lithium v0.0.0-20251005123112-b36a31bc9502 h1:+etEL6pT6DmDRxBM0DNIAruAugfT3K4myGv0qmbRlkE=
+github.com/mymmrac/lithium v0.0.0-20251005123112-b36a31bc9502/go.mod h1:XAxpXAbzjsj1jitE6kcR4Yu+tk5HurIaYViNckCMzqQ=
+github.com/mymmrac/wape/plugin v0.0.0-20251005121638-35dc5f6a6687 h1:LdYjcovzP3U5P5xVy5lj38RyeSAEjjpINMgSpooKqco=
+github.com/mymmrac/wape/plugin v0.0.0-20251005121638-35dc5f6a6687/go.mod h1:4hiYW04gwMuumfoSnVLuAQSL7/4WsCC7UwldoghiIi8=
