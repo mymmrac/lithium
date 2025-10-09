@@ -117,7 +117,7 @@ func generateBirthdayMessage(apiKey, recipient string, age *int, tone, details s
 	if details != "" {
 		prompt += fmt.Sprintf(" Include these details: %s.", details)
 	}
-	prompt += " Keep it concise and warm. Respond in same language as the recipient."
+	prompt += " Keep it concise and warm. Respond in Ukrainian language."
 
 	body := map[string]any{
 		"model": os.Getenv("GROQ_MODEL"),
